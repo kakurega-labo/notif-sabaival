@@ -7,6 +7,7 @@ let spawnIntervalId = null;
 let notificationIdCounter = 1;
 let isClockStarted = false; // 時計の二重起動防止用
 let clearedNotificationsCount = 0; // 処理した通知の累積カウント
+let savedUserName = ""; // 追加: ユーザー名
 
 // -----------------------
 // 画面制御ロジック
@@ -50,6 +51,14 @@ function toggleWallpaper() {
     }
 }
 
+function saveUsername() {
+    const input = document.getElementById('username-input');
+    const msg = document.getElementById('username-msg');
+    savedUserName = input.value.trim();
+    msg.classList.remove('hidden');
+    setTimeout(() => msg.classList.add('hidden'), 2000);
+}
+
 // -----------------------
 // 経過時間計算ロジック
 // -----------------------
@@ -77,6 +86,7 @@ function createRandomNotification() {
 
     const selectedType = types[Math.floor(Math.random() * types.length)];
     const isSpecialCase = Math.random() < 0.5; // 分岐用のランダムフラグ
+    const n = savedUserName ? `${savedUserName}さん、` : ''; // ユーザー名差し込み用
 
     switch (selectedType) {
         case 'missedCall': {
@@ -102,7 +112,7 @@ function createRandomNotification() {
                 id,
                 createdAt,
                 appName: '社内チャット',
-                title: isSpecialCase ? '部長：休日にごめん、これお願い' : '部長：例の件、今日中によろしく',
+                title: isSpecialCase ? `部長：${n}休日にごめん、これお願い` : `部長：${n}例の件、今日中によろしく`,
                 icon: 'fa-comment-dots',
                 bgColor: 'bg-blue-500',
                 actions: isSpecialCase ? [
@@ -133,18 +143,18 @@ function createRandomNotification() {
             };
         }
         case 'overtime': {
-            // 残業時間のランダム化 (0〜99時間 / 0〜99分)
             const hours = Math.floor(Math.random() * 100);
             const mins = Math.floor(Math.random() * 100);
             const hoursStr = hours.toString().padStart(2, '0');
             const minsStr = mins.toString().padStart(2, '0');
             const isHighOvertime = hours >= 45;
+            const targetName = savedUserName ? `${savedUserName}の` : '今月の';
 
             return {
                 id,
                 createdAt,
                 appName: '勤怠管理',
-                title: `今月の残業時間：${hoursStr}時間${minsStr}分`,
+                title: `${targetName}残業時間：${hoursStr}時間${minsStr}分`,
                 icon: 'fa-stopwatch',
                 bgColor: 'bg-yellow-500',
                 actions: isHighOvertime ? [
@@ -230,7 +240,7 @@ function createRandomNotification() {
                 id,
                 createdAt,
                 appName: '人事部',
-                title: isSpecialCase ? '【要出頭】人事面談のお知らせ' : '【要回答】従業員満足度アンケート',
+                title: isSpecialCase ? `【要出頭】${n}人事面談のお知らせ` : '【要回答】従業員満足度アンケート',
                 icon: 'fa-clipboard-list',
                 bgColor: 'bg-teal-500',
                 actions: isSpecialCase ? [
@@ -249,7 +259,6 @@ function createRandomNotification() {
 // 初期化・タイマー開始
 // -----------------------
 window.onload = () => {
-    // ページロード時は背景の時計や日付だけ動かしておく
     setRandomDate();
     startClock();
     isClockStarted = true;
@@ -264,7 +273,6 @@ function init() {
         isClockStarted = true;
     }
 
-    // 勤務開始と同時に通知が来るように、初期通知は生成せずタイマーを開始
     startNotificationSpawner();
 }
 
@@ -273,7 +281,6 @@ function startNotificationSpawner() {
     spawnIntervalId = setInterval(() => {
         if (currentBattery <= 0) return;
 
-        // 通知が50件以上溜まったらパンクしてゲームオーバー
         if (activeNotifications.length >= 50) {
             showGameOverScreen('overflow');
             return;
@@ -296,7 +303,6 @@ function setRandomDate() {
 }
 
 function setRandomBattery() {
-    // 初期値を1〜100%でランダム設定
     currentBattery = Math.floor(Math.random() * 100) + 1;
     updateBatteryDisplay(currentBattery);
 }
@@ -309,11 +315,9 @@ function updateBatteryDisplay(percent) {
 
     batteryText.textContent = `${percent}%`;
 
-    // アイコンおよびカラーのリセット
     batteryIcon.className = 'fa-solid text-lg';
     batteryText.classList.remove('text-red-500');
 
-    // パーセントとアイコン・カラーの完全一致
     if (percent > 80) {
         batteryIcon.classList.add('fa-battery-full');
     } else if (percent > 50) {
@@ -350,7 +354,6 @@ function renderNotifications() {
     const container = document.getElementById('notification-container');
     container.innerHTML = '';
 
-    // 時刻が新しい順（createdAtが大きい順）に並び替えてから描画
     activeNotifications.sort((a, b) => b.createdAt - a.createdAt);
 
     activeNotifications.forEach(notif => {
@@ -359,7 +362,6 @@ function renderNotifications() {
         card.id = `notif-${notif.id}`;
         card.onclick = () => toggleExpand(notif.id);
 
-        // 通知メインコンテンツ (左: アイコン / 右: アプリ名・時間・本文)
         const mainContent = document.createElement('div');
         mainContent.className = 'flex items-center gap-3';
         mainContent.innerHTML = `
@@ -389,7 +391,21 @@ function renderNotifications() {
             
             btn.onclick = (e) => {
                 e.stopPropagation();
-                handleAction(notif.id, action.msg, action.damage, action.type);
+                
+                // クリア通知のボタンアクション分岐
+                if (notif.isSpecialClear) {
+                    showToast(action.msg);
+                    setTimeout(() => {
+                        if (action.actionId === 'restart') {
+                            startGame();
+                        } else {
+                            document.getElementById('notification-container').innerHTML = '';
+                            backToTitle();
+                        }
+                    }, 500);
+                } else {
+                    handleAction(notif.id, action.msg, action.damage, action.type);
+                }
             };
             
             actionsArea.appendChild(btn);
@@ -419,24 +435,20 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
     const card = document.getElementById(`notif-${id}`);
     if (!card) return;
 
-    // バッテリーの減少・回復処理（上限100%に制限）
     currentBattery = Math.min(100, Math.max(0, currentBattery - damage));
     updateBatteryDisplay(currentBattery);
 
-    // 滑らかなスライドアウト
     card.classList.add('slide-out-right');
     showToast(message);
 
     setTimeout(() => {
         card.remove();
         activeNotifications = activeNotifications.filter(n => n.id !== id);
-        clearedNotificationsCount++; // 処理数をカウントアップ
+        clearedNotificationsCount++;
 
-        // ゲームオーバー判定
         if (currentBattery <= 0) {
             showGameOverScreen('battery');
         } else if (clearedNotificationsCount >= 10 && activeNotifications.length === 0) {
-            // 10件以上処理し、かつ画面上の通知が0件になればクリア
             showClearScreen();
         }
     }, 400);
@@ -476,14 +488,21 @@ function showGameOverScreen(reason = 'battery') {
 function showClearScreen() {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
 
-    const clearScreen = document.getElementById('clear-screen');
-    const icon = document.getElementById('end-icon');
-    const title = document.getElementById('end-title');
-    const desc = document.getElementById('end-desc');
+    // クリア用の特別な通知を発行
+    const clearNotif = {
+        id: 'clear-' + Date.now(),
+        createdAt: Date.now(),
+        appName: 'システム管理',
+        title: 'MISSION CLEAR! すべての通知を捌き切りました！',
+        icon: 'fa-circle-check',
+        bgColor: 'bg-green-500',
+        isSpecialClear: true, // クリア通知判定フラグ
+        actions: [
+            { label: 'もう一度遊ぶ', type: 'slave', msg: '再起動します...', actionId: 'restart' },
+            { label: 'タイトルに戻る', type: 'rebel', msg: 'お疲れ様でした。', actionId: 'title' }
+        ]
+    };
 
-    icon.className = 'fa-solid fa-circle-check text-6xl mb-4 text-green-400';
-    title.textContent = 'MISSION CLEAR!';
-    desc.textContent = 'すべての通知を捌き切りました！';
-
-    clearScreen.classList.remove('hidden');
+    activeNotifications.push(clearNotif);
+    renderNotifications();
 }
