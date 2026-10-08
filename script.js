@@ -2,6 +2,7 @@
 // グローバル状態管理
 // -----------------------
 let currentBattery = 100;
+let initialBattery = 100; // ゲーム開始時のバッテリー（記録用）
 let activeNotifications = [];
 let spawnIntervalId = null;
 let notificationIdCounter = 1;
@@ -10,6 +11,10 @@ let clearedNotificationsCount = 0; // 処理した通知の累積カウント
 let savedUserName = ""; // ユーザー名
 let targetClearCount = 10; // クリアに必要な通知処理数（デフォルト10件）
 let gameStartTime = 0; // ゲーム開始時刻（勤務時間の計測用）
+
+// ランキング用状態
+let currentRankingDifficulty = "5"; // モーダルで表示中の難易度タグ
+let lastGameResult = null; // スコア送信用の最終リザルト情報
 
 // -----------------------
 // 画面制御ロジック
@@ -74,7 +79,9 @@ function changeDifficulty() {
 function saveUsername() {
     const input = document.getElementById('username-input');
     const msg = document.getElementById('username-msg');
-    savedUserName = input.value.trim();
+    savedUserName = input.value.trim().substring(0, 10); // 10文字までに制限
+    input.value = savedUserName;
+    
     msg.classList.remove('hidden');
     setTimeout(() => msg.classList.add('hidden'), 2000);
 }
@@ -340,6 +347,7 @@ function setRandomDate() {
 
 function setRandomBattery() {
     currentBattery = Math.floor(Math.random() * 100) + 1;
+    initialBattery = currentBattery; // 開始時のバッテリーを保持
     updateBatteryDisplay(currentBattery);
 }
 
@@ -439,6 +447,8 @@ function renderNotifications() {
                         setTimeout(() => {
                             if (action.actionId === 'restart') {
                                 startGame();
+                            } else if (action.actionId === 'ranking') {
+                                openRankingModal(targetClearCount.toString());
                             } else {
                                 document.getElementById('notification-container').innerHTML = '';
                                 backToTitle();
@@ -510,8 +520,29 @@ function showToast(message) {
     }, 2500);
 }
 
+function prepareResultData(isClear = true) {
+    const elapsedTimeMs = Date.now() - gameStartTime;
+    lastGameResult = {
+        difficulty: targetClearCount.toString(),
+        clearTimeSeconds: Math.floor(elapsedTimeMs / 1000),
+        clearTimeStr: formatElapsedTime(elapsedTimeMs),
+        startBattery: initialBattery,
+        endBattery: currentBattery,
+        clearedCount: clearedNotificationsCount,
+        isClear: isClear ? 1 : 0
+    };
+
+    // 名前欄の初期補完
+    const rankingInput = document.getElementById('ranking-username-input');
+    if (rankingInput) {
+        rankingInput.value = savedUserName || "";
+    }
+}
+
 function showGameOverScreen(reason = 'battery') {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
+
+    prepareResultData(false);
 
     const clearScreen = document.getElementById('clear-screen');
     const icon = document.getElementById('end-icon');
@@ -533,6 +564,8 @@ function showGameOverScreen(reason = 'battery') {
 
 function showClearScreen() {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
+
+    prepareResultData(true);
 
     // リザルト演出：壁紙をクリア専用に切り替え、日付を MISSION CLEAR に変更
     document.querySelector('.phone-frame').classList.add('clear-bg');
@@ -577,7 +610,7 @@ function showClearScreen() {
         actions: []
     });
 
-    // 4. MISSION CLEAR 通知 (最後に配信されるため、1番上に表示される)
+    // 4. MISSION CLEAR 通知
     const clearNotif = {
         id: 'clear-' + baseTime,
         createdAt: baseTime + 300,
@@ -587,6 +620,7 @@ function showClearScreen() {
         bgColor: 'bg-green-500',
         isSpecialClear: true, // クリア通知判定フラグ
         actions: [
+            { label: 'ランキングを見る', type: 'slave', msg: 'ランキングを開きます...', actionId: 'ranking' },
             { label: 'もう一度遊ぶ', type: 'slave', msg: '再起動します...', actionId: 'restart' },
             { label: 'タイトルに戻る', type: 'rebel', msg: 'お疲れ様でした。', actionId: 'title' }
         ]
@@ -594,4 +628,150 @@ function showClearScreen() {
 
     activeNotifications.push(clearNotif);
     renderNotifications();
+
+    // クリア時はモーダル付きでリザルト画面を表示できる用意をする
+    document.getElementById('clear-screen').classList.remove('hidden');
+    document.getElementById('end-icon').className = 'fa-solid fa-trophy text-6xl mb-2 text-amber-400';
+    document.getElementById('end-title').textContent = 'MISSION CLEAR!';
+    document.getElementById('end-desc').textContent = `クリアタイム: ${elapsedTime} (残充電: ${currentBattery}%)`;
+}
+
+// -----------------------
+// ランキングAPI通信・モーダル処理
+// -----------------------
+function openRankingModal(diff) {
+    if (diff) {
+        currentRankingDifficulty = diff;
+    } else {
+        currentRankingDifficulty = targetClearCount.toString();
+    }
+    
+    document.getElementById('ranking-modal').classList.remove('hidden');
+    switchRankingTab(currentRankingDifficulty);
+}
+
+function closeRankingModal() {
+    document.getElementById('ranking-modal').classList.add('hidden');
+}
+
+function switchRankingTab(diff) {
+    currentRankingDifficulty = diff;
+
+    // タブの見た目を切り替え
+    ['5', '10', '20'].forEach(d => {
+        const tab = document.getElementById(`tab-diff-${d}`);
+        if (tab) {
+            if (d === diff) {
+                tab.className = 'flex-1 py-1.5 rounded-md font-bold transition-all bg-amber-500 text-black';
+            } else {
+                tab.className = 'flex-1 py-1.5 rounded-md font-bold transition-all text-gray-300 hover:text-white';
+            }
+        }
+    });
+
+    fetchRanking(diff);
+}
+
+async function fetchRanking(diff) {
+    const listContainer = document.getElementById('ranking-list');
+    listContainer.innerHTML = '<div class="text-center py-8 text-gray-400">読み込み中...</div>';
+
+    try {
+        const response = await fetch(`/api/ranking?difficulty=${diff}`);
+        if (!response.ok) throw new Error('取得失敗');
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            listContainer.innerHTML = '<div class="text-center py-8 text-gray-500 text-xs">まだ記録がありません。</div>';
+            return;
+        }
+
+        listContainer.innerHTML = '';
+        data.forEach((item, index) => {
+            const rank = index + 1;
+            let badgeClass = 'rank-other';
+            if (rank === 1) badgeClass = 'rank-1';
+            else if (rank === 2) badgeClass = 'rank-2';
+            else if (rank === 3) badgeClass = 'rank-3';
+
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-12 items-center p-2 rounded bg-white/5 border border-white/5 text-xs';
+            row.innerHTML = `
+                <div class="col-span-2">
+                    <span class="rank-badge ${badgeClass}">${rank}</span>
+                </div>
+                <div class="col-span-5 font-bold truncate pr-1">${escapeHtml(item.username || '名無し')}</div>
+                <div class="col-span-3 text-right text-gray-300 font-mono text-[11px]">${item.clearTimeStr}</div>
+                <div class="col-span-2 text-right font-mono text-amber-300 text-[11px]">${item.endBattery}%</div>
+            `;
+            listContainer.appendChild(row);
+        });
+
+    } catch (err) {
+        console.error(err);
+        listContainer.innerHTML = '<div class="text-center py-8 text-red-400 text-xs">読み込みに失敗しました</div>';
+    }
+}
+
+async function submitRankingScore() {
+    const nameInput = document.getElementById('ranking-username-input');
+    const msgEl = document.getElementById('ranking-submit-msg');
+    const name = nameInput.value.trim().substring(0, 10);
+
+    if (!name) {
+        msgEl.textContent = '名前を入力してください (10文字以内)';
+        msgEl.className = 'text-[10px] text-red-400 mt-1';
+        msgEl.classList.remove('hidden');
+        return;
+    }
+
+    if (!lastGameResult) return;
+
+    msgEl.textContent = '送信中...';
+    msgEl.className = 'text-[10px] text-amber-300 mt-1';
+    msgEl.classList.remove('hidden');
+
+    try {
+        const payload = {
+            ...lastGameResult,
+            username: name
+        };
+
+        const response = await fetch('/api/ranking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error('送信エラー');
+
+        // 保存用ユーザー名も更新
+        savedUserName = name;
+        const mainInput = document.getElementById('username-input');
+        if (mainInput) mainInput.value = name;
+
+        msgEl.textContent = '登録完了しました！';
+        msgEl.className = 'text-[10px] text-green-400 mt-1';
+
+        setTimeout(() => {
+            openRankingModal(lastGameResult.difficulty);
+        }, 800);
+
+    } catch (err) {
+        console.error(err);
+        msgEl.textContent = '登録に失敗しました';
+        msgEl.className = 'text-[10px] text-red-400 mt-1';
+    }
+}
+
+function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function(m) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[m];
+    });
 }
