@@ -49,14 +49,14 @@
                         <button onclick="startGame()" class="px-8 py-3 bg-[#fc9500] hover:bg-[#ffb831] rounded-full font-bold text-lg transition-colors w-full">
                             スタート
                         </button>
-                        <button onclick="openRankingModal()" class="px-6 py-2 bg-amber-600/80 hover:bg-amber-500 rounded-full font-bold transition-colors w-full flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-trophy"></i> ランキング
-                        </button>
                     </div>
                 </div>
-                <div class="flex flex-col items-center pb-8">
-                    <button onclick="showHowToPlay()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full font-bold transition-colors w-full max-w-[200px]">
-                        遊び方 / 設定
+                <div class="flex flex-col items-center gap-2 pb-8 w-full max-w-[200px] mx-auto">
+                    <button onclick="openRankingModal()" class="px-6 py-2 bg-amber-600/80 hover:bg-amber-500 rounded-full font-bold transition-colors w-full flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-trophy"></i> ランキング
+                    </button>
+                    <button onclick="showHowToPlay()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full font-bold transition-colors w-full flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-gear"></i> 遊び方 / 設定
                     </button>
                 </div>
             </div>
@@ -79,7 +79,10 @@
                       <p><strong>ゲームオーバー：</strong><br>
                          1. <strong>電源切れ：</strong>バッテリー残量が0%になる<br>
                          2. <strong>処理落ち：</strong>通知が画面に50件溜まる
-                        </p>
+                      </p>
+                      <p><strong>ユーザー名設定について：</strong><br>
+                         事前にユーザー名を入力・保存しておくと、プレイ中に自分宛ての通知が届くようになり、さらに楽しめます！※登録する名前はリザルト画面でも自由に変更・指定できます。
+                      </p>
                     </div>
 
                     <!-- 出勤時間設定 -->
@@ -177,8 +180,9 @@
                 <!-- ランキングリストヘッダー -->
                 <div class="grid grid-cols-12 text-[10px] text-gray-400 border-b border-gray-700 pb-1 mb-1 px-2 font-bold">
                     <span class="col-span-2">順位</span>
-                    <span class="col-span-5">ユーザー名</span>
-                    <span class="col-span-3 text-right">タイム</span>
+                    <span class="col-span-4">ユーザー名</span>
+                    <span class="col-span-2 text-right">通知数</span>
+                    <span class="col-span-2 text-right">タイム</span>
                     <span class="col-span-2 text-right">残充電</span>
                 </div>
 
@@ -187,7 +191,10 @@
                     <div class="text-center py-8 text-gray-400">読み込み中...</div>
                 </div>
 
-                <div class="pt-3 flex justify-center">
+                <!-- 自ステータス・未登録時案内領域 -->
+                <div id="user-rank-status" class="mt-2 p-2 bg-white/10 rounded-lg text-xs text-amber-300 text-center border border-amber-500/30 shrink-0 hidden"></div>
+
+                <div class="pt-2 flex justify-center">
                     <button onclick="closeRankingModal()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full text-xs font-bold transition-colors">
                         閉じる
                     </button>
