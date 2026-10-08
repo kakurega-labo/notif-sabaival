@@ -41,56 +41,74 @@
                 <!-- JavaScriptでここに通知が生成されます -->
             </div>
 
-            <div id="title-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm z-50 text-white p-6 text-center">
-                <h1 class="text-3xl font-bold mb-8 drop-shadow-md">ロック画面de<br>通知捌いばる</h1>
-                <button onclick="startGame()" class="mb-4 px-8 py-3 bg-[#fc9500] hover:bg-[#ffb831] rounded-full font-bold text-lg transition-colors w-full max-w-[200px]">
-                    スタート
-                </button>
-                <button onclick="showHowToPlay()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full font-bold transition-colors w-full max-w-[200px]">
-                    遊び方 / 設定
-                </button>
+            <div id="title-screen" class="absolute inset-0 flex flex-col bg-black/80 backdrop-blur-sm z-50 text-white p-6 text-center">
+                <div class="flex-1 flex flex-col items-center justify-center">
+                    <h1 class="text-3xl font-bold mb-8 drop-shadow-md">ロック画面de<br>通知捌いばる</h1>
+                    <button onclick="startGame()" class="px-8 py-3 bg-[#fc9500] hover:bg-[#ffb831] rounded-full font-bold text-lg transition-colors w-full max-w-[200px]">
+                        スタート
+                    </button>
+                </div>
+                <div class="flex flex-col items-center pb-8">
+                    <button onclick="showHowToPlay()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full font-bold transition-colors w-full max-w-[200px]">
+                        遊び方 / 設定
+                    </button>
+                </div>
             </div>
 
-            <div id="how-to-play-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md z-50 text-white p-6">
-                <h2 class="text-2xl font-bold mb-4">遊び方 / 設定</h2>
+            <div id="how-to-play-screen" class="hidden absolute inset-0 flex flex-col bg-black/90 backdrop-blur-md z-50 text-white p-6">
+                <h2 class="text-2xl font-bold mb-4 mt-4 text-center shrink-0">遊び方 / 設定</h2>
                 
-                <div class="text-left text-sm space-y-3 mb-4 overflow-y-auto max-h-[40vh] p-3 bg-white/10 w-full rounded-xl custom-scrollbar">
-                    <p><strong>画面上のステータスアイコン：</strong><br>
-                       <i class="fa-solid fa-battery-full"></i> <strong>バッテリー：</strong>0%になると電源切れで即ゲームオーバー
-                    </p>
-                    <p><strong>基本操作：</strong><br>数秒ごとに届く通知をタップして開き、対応アクションを選択して素早く処理します。</p>
-                   <p><strong>アクション選択：</strong><br>
-                     通知を処理するごとにバッテリー <i class="fa-solid fa-battery-full"></i> を消費します。<br>
-                     ※「ヘルスケア」通知など一部のアクションでバッテリーを充電できます。
-                  </p>
-                  <p><strong>クリア条件：</strong><br>通知を<strong>10件以上</strong>処理し、画面上の通知を<strong>0件</strong>にすることです。</p>
-                  <p><strong>ゲームオーバー：</strong><br>
-                     1. <strong>電源切れ：</strong>バッテリー残量が0%になる<br>
-                     2. <strong>処理落ち：</strong>通知が画面に50件溜まる
-                    </p>
-                </div>
-
-                <!-- ユーザー名設定 -->
-                <div class="w-full p-3 bg-white/10 rounded-xl mb-4">
-                    <span class="text-sm font-bold block mb-2">ユーザー名（任意）</span>
-                    <div class="flex gap-2">
-                        <input type="text" id="username-input" placeholder="未入力なら通常通り" class="flex-1 bg-black/50 border border-gray-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-white">
-                        <button onclick="saveUsername()" class="px-3 py-1 bg-[#fc9500] hover:bg-[#ffb831] rounded text-sm font-bold transition-colors">保存</button>
+                <div class="w-full flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pb-4">
+                    <div class="text-left text-sm space-y-3 p-3 bg-white/10 w-full rounded-xl">
+                        <p><strong>画面上のステータスアイコン：</strong><br>
+                           <i class="fa-solid fa-battery-full"></i> <strong>バッテリー：</strong>0%になると電源切れで即ゲームオーバー
+                        </p>
+                        <p><strong>基本操作：</strong><br>数秒ごとに届く通知をタップして開き、対応アクションを選択して素早く処理します。</p>
+                       <p><strong>アクション選択：</strong><br>
+                         通知を処理するごとにバッテリー <i class="fa-solid fa-battery-full"></i> を消費します。<br>
+                         ※「ヘルスケア」通知など一部のアクションでバッテリーを充電できます。
+                      </p>
+                      <p><strong>クリア条件：</strong><br>設定した出勤時間（ノルマ件数）以上の通知を処理し、画面上の通知を<strong>0件</strong>にすることです。</p>
+                      <p><strong>ゲームオーバー：</strong><br>
+                         1. <strong>電源切れ：</strong>バッテリー残量が0%になる<br>
+                         2. <strong>処理落ち：</strong>通知が画面に50件溜まる
+                        </p>
                     </div>
-                    <p id="username-msg" class="text-xs text-green-400 mt-1 hidden">保存しました！</p>
+
+                    <!-- 出勤時間設定 -->
+                    <div class="w-full p-3 bg-white/10 rounded-xl">
+                        <span class="text-sm font-bold block mb-2">出勤時間（難易度）</span>
+                        <select id="difficulty-select" onchange="changeDifficulty()" class="w-full bg-black/50 border border-gray-500 rounded px-2 py-2 text-sm text-white focus:outline-none focus:border-white">
+                            <option value="5">パート（通知ノルマ5件）</option>
+                            <option value="10" selected>ノーマル（10件）</option>
+                            <option value="20">フルタイム（20件）</option>
+                        </select>
+                    </div>
+
+                    <!-- ユーザー名設定 -->
+                    <div class="w-full p-3 bg-white/10 rounded-xl">
+                        <span class="text-sm font-bold block mb-2">ユーザー名（任意）</span>
+                        <div class="flex gap-2">
+                            <input type="text" id="username-input" placeholder="未入力なら通常通り" class="flex-1 bg-black/50 border border-gray-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-white">
+                            <button onclick="saveUsername()" class="px-3 py-1 bg-[#fc9500] hover:bg-[#ffb831] rounded text-sm font-bold transition-colors">保存</button>
+                        </div>
+                        <p id="username-msg" class="text-xs text-green-400 mt-1 hidden">保存しました！</p>
+                    </div>
+
+                    <div class="flex items-center justify-between w-full p-3 bg-white/10 rounded-xl">
+                        <span class="text-sm font-bold">壁紙を表示</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="wallpaper-toggle" class="sr-only peer" checked onchange="toggleWallpaper()">
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between w-full p-3 bg-white/10 rounded-xl mb-6">
-                    <span class="text-sm font-bold">壁紙を表示</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="wallpaper-toggle" class="sr-only peer" checked onchange="toggleWallpaper()">
-                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                    </label>
+                <div class="flex flex-col items-center shrink-0 pt-4 pb-2">
+                    <button onclick="hideHowToPlay()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full font-bold transition-colors w-full max-w-[200px]">
+                        閉じる
+                    </button>
                 </div>
-
-                <button onclick="hideHowToPlay()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full font-bold transition-colors">
-                    閉じる
-                </button>
             </div>
 
             <!-- クリア画面のUIは削除し、ゲームオーバー専用として残す -->
