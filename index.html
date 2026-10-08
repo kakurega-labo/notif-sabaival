@@ -137,6 +137,24 @@
                     <h2 id="end-title" class="text-2xl font-black mb-1 tracking-tight drop-shadow">電源切れ</h2>
                     <p id="end-desc" class="text-gray-300 text-[11px] mb-4 font-medium px-2 leading-relaxed">バッテリーが切れ、音信不通になりました...</p>
                     
+                    <!-- ダミーウィジェット（余白埋め＆ウィジェット画面モチーフ用） -->
+                    <div class="grid grid-cols-2 gap-2 w-full mb-3">
+                        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
+                           <i class="fa-solid fa-cloud-bolt text-gray-400 text-xl"></i>
+                           <div class="flex flex-col text-left">
+                               <span class="text-[9px] text-gray-400">現在地 (会社)</span>
+                               <span class="text-xs font-bold text-white">荒天 / 帰宅困難</span>
+                           </div>
+                        </div>
+                        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
+                           <i class="fa-solid fa-arrow-trend-down text-red-500 text-xl"></i>
+                           <div class="flex flex-col text-left">
+                               <span class="text-[9px] text-gray-400">自社株価</span>
+                               <span class="text-xs font-bold text-red-400">暴落中</span>
+                           </div>
+                        </div>
+                    </div>
+
                     <!-- リザルト成績サマリーパネル -->
                     <div id="result-summary-card" class="w-full bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-3 mb-3.5 shadow-2xl relative overflow-hidden">
                         <div class="absolute -right-6 -top-6 w-20 h-20 bg-amber-500/10 rounded-full blur-lg pointer-events-none"></div>
@@ -171,21 +189,26 @@
                         </div>
                     </div>
 
-                    <!-- スコア送信エリア -->
-                    <div id="ranking-submit-area" class="w-full bg-gradient-to-r from-amber-950/40 via-amber-900/30 to-slate-900/80 border border-amber-500/40 p-3 rounded-2xl mb-4 text-left shadow-xl relative">
+                    <!-- スコア送信エリア (クラウド同期風ウィジェット) -->
+                    <div id="ranking-submit-area" class="w-full bg-slate-900/80 backdrop-blur-md border border-blue-500/30 p-3 rounded-2xl mb-4 text-left shadow-xl relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                                <i class="fa-solid fa-trophy text-amber-400"></i> ランキングに記録
+                            <span class="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-cloud-arrow-up text-blue-400"></i> 社内DBへ成績を同期
                             </span>
-                            <span class="text-[9px] text-gray-400 font-mono">MAX 10文字</span>
+                            <span class="text-[9px] text-gray-400 font-mono">社員名 (MAX10文字)</span>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <input type="text" id="ranking-username-input" maxlength="10" placeholder="名前を入力" class="flex-1 bg-black/70 border border-amber-500/40 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-white focus:outline-none transition-all placeholder-gray-500 min-w-0">
-                            <button id="ranking-submit-btn" onclick="submitRankingScore()" class="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 rounded-xl text-xs font-bold text-black shadow-md transition-all shrink-0 flex items-center justify-center gap-1 whitespace-nowrap">
-                                登録
+                            <div class="relative flex-1">
+                                <i class="fa-solid fa-user absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-500 text-[10px]"></i>
+                                <input type="text" id="ranking-username-input" maxlength="10" placeholder="名前を入力" class="w-full bg-black/60 border border-blue-500/40 focus:border-blue-400 rounded-xl pl-7 pr-3 py-2 text-xs text-white focus:outline-none transition-all placeholder-gray-500 min-w-0">
+                            </div>
+                            <button id="ranking-submit-btn" onclick="submitRankingScore()" class="px-3.5 py-2 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 active:scale-95 rounded-xl text-xs font-bold text-white shadow-md transition-all shrink-0 flex items-center justify-center gap-1 whitespace-nowrap border border-blue-400/50">
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i> 同期
                             </button>
                         </div>
-                        <p id="ranking-submit-msg" class="text-[10px] text-amber-300 mt-1.5 hidden text-center font-medium"></p>
+                        <p id="ranking-submit-msg" class="text-[10px] text-blue-300 mt-1.5 hidden text-center font-medium"></p>
                     </div>
 
                     <!-- アクションボタン群 -->
@@ -206,7 +229,7 @@
                 </div>
             </div>
 
-            <!-- 全画面共通：ランキングモーダル -->
+            <!-- 全画面共通：ランキングモーダル（変更なし） -->
             <div id="ranking-modal" class="hidden absolute inset-0 flex flex-col bg-black/90 backdrop-blur-md z-50 text-white p-4">
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-xl font-bold flex items-center gap-2">
