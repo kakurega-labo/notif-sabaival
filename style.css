@@ -83,7 +83,8 @@ body {
 
 /* 通知が消えるアニメーション (横滑り＆高さ縮小でスムーズな押し上げ) */
 .slide-out-right {
-    animation: slideOut 0.4s forwards cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideOut 0.35s forwards cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
 }
 
 @keyframes slideOut {
@@ -92,11 +93,9 @@ body {
         opacity: 1;
         max-height: 200px;
         margin-bottom: 0.75rem;
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
     }
-    40% {
-        transform: translateX(120%);
+    50% {
+        transform: translateX(110%);
         opacity: 0;
         max-height: 200px;
         margin-bottom: 0.75rem;
@@ -104,7 +103,7 @@ body {
         padding-bottom: 0.75rem;
     }
     100% {
-        transform: translateX(120%);
+        transform: translateX(110%);
         opacity: 0;
         max-height: 0;
         margin-bottom: 0;
