@@ -396,6 +396,10 @@ function renderNotifications() {
         const card = document.createElement('div');
         card.className = `glass-card p-3 text-white shrink-0`;
         card.id = `notif-${notif.id}`;
+        // アクションボタンがない場合はカーソルをデフォルト（指マークにしない）にする
+        if (!notif.actions || notif.actions.length === 0) {
+            card.style.cursor = 'default';
+        }
         card.onclick = () => toggleExpand(notif.id);
 
         const mainContent = document.createElement('div');
