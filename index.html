@@ -123,51 +123,65 @@
             </div>
 
             <!-- リザルト / ゲームオーバー画面 -->
-            <div id="clear-screen" class="hidden absolute inset-0 flex flex-col items-center justify-between bg-black/85 backdrop-blur-md z-40 text-white p-6 text-center overflow-y-auto no-scrollbar">
-                <div class="w-full flex flex-col items-center my-auto">
-                    <!-- ヘッダーアイコン・タイトル -->
-                    <div class="mb-3">
-                        <i id="end-icon" class="fa-solid fa-battery-empty text-5xl text-red-500 drop-shadow-lg"></i>
+            <div id="clear-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-black/90 via-slate-950/90 to-black/95 backdrop-blur-lg z-40 text-white p-5 text-center overflow-y-auto no-scrollbar">
+                <div class="w-full max-w-[310px] flex flex-col items-center py-2 my-auto">
+                    
+                    <!-- ヘッダーアイコン・演出 -->
+                    <div class="relative mb-2 flex items-center justify-center">
+                        <div class="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
+                        <div class="relative w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl backdrop-blur-md">
+                            <i id="end-icon" class="fa-solid fa-battery-empty text-4xl text-red-500 drop-shadow-md"></i>
+                        </div>
                     </div>
-                    <h2 id="end-title" class="text-3xl font-extrabold mb-1 tracking-tight">電源切れ</h2>
-                    <p id="end-desc" class="text-gray-300 text-xs mb-4">バッテリーが切れ、音信不通になりました...</p>
+
+                    <h2 id="end-title" class="text-2xl font-black mb-1 tracking-tight drop-shadow">電源切れ</h2>
+                    <p id="end-desc" class="text-gray-300 text-[11px] mb-4 font-medium px-2 leading-relaxed">バッテリーが切れ、音信不通になりました...</p>
                     
                     <!-- リザルト成績サマリーパネル -->
-                    <div id="result-summary-card" class="w-full max-w-[280px] bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-3 mb-4 shadow-xl">
-                        <div class="text-[11px] font-bold text-amber-300 border-b border-white/10 pb-1.5 mb-2 flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-clipboard-check"></i> 業務成績レポート
+                    <div id="result-summary-card" class="w-full bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-3 mb-3.5 shadow-2xl relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 w-20 h-20 bg-amber-500/10 rounded-full blur-lg pointer-events-none"></div>
+                        <div class="text-[11px] font-bold text-amber-300 border-b border-white/10 pb-2 mb-2.5 flex items-center justify-center gap-1.5 uppercase tracking-wider">
+                            <i class="fa-solid fa-clipboard-check text-amber-400"></i> 業務成績レポート
                         </div>
-                        <div class="grid grid-cols-2 gap-2 text-left text-xs">
-                            <div class="bg-black/30 rounded-lg p-2 border border-white/5">
-                                <span class="text-[10px] text-gray-400 block mb-0.5">捌いた通知数</span>
-                                <span id="res-cleared-count" class="font-extrabold text-amber-400 text-sm">0件</span>
+                        <div class="grid grid-cols-2 gap-2 text-left">
+                            <div class="bg-black/40 rounded-xl p-2.5 border border-white/5 flex flex-col justify-between">
+                                <span class="text-[10px] text-gray-400 flex items-center gap-1 font-medium">
+                                    <i class="fa-solid fa-inbox text-[9px] text-amber-400"></i> 捌いた通知
+                                </span>
+                                <span id="res-cleared-count" class="font-black text-amber-400 text-base mt-0.5">0件</span>
                             </div>
-                            <div class="bg-black/30 rounded-lg p-2 border border-white/5">
-                                <span class="text-[10px] text-gray-400 block mb-0.5">勤務時間</span>
-                                <span id="res-clear-time" class="font-extrabold text-white text-sm">0分00秒</span>
+                            <div class="bg-black/40 rounded-xl p-2.5 border border-white/5 flex flex-col justify-between">
+                                <span class="text-[10px] text-gray-400 flex items-center gap-1 font-medium">
+                                    <i class="fa-solid fa-clock text-[9px] text-blue-400"></i> 勤務時間
+                                </span>
+                                <span id="res-clear-time" class="font-bold text-white text-sm mt-0.5">0分00秒</span>
                             </div>
-                            <div class="bg-black/30 rounded-lg p-2 border border-white/5">
-                                <span class="text-[10px] text-gray-400 block mb-0.5">バッテリー残量</span>
-                                <span id="res-battery" class="font-extrabold text-green-400 text-sm">100%</span>
+                            <div class="bg-black/40 rounded-xl p-2.5 border border-white/5 flex flex-col justify-between">
+                                <span class="text-[10px] text-gray-400 flex items-center gap-1 font-medium">
+                                    <i class="fa-solid fa-battery-half text-[9px] text-green-400"></i> 残充電
+                                </span>
+                                <span id="res-battery" class="font-bold text-green-400 text-sm mt-0.5">100%</span>
                             </div>
-                            <div class="bg-black/30 rounded-lg p-2 border border-white/5">
-                                <span class="text-[10px] text-gray-400 block mb-0.5">難易度</span>
-                                <span id="res-difficulty" class="font-extrabold text-purple-300 text-sm">ノーマル</span>
+                            <div class="bg-black/40 rounded-xl p-2.5 border border-white/5 flex flex-col justify-between">
+                                <span class="text-[10px] text-gray-400 flex items-center gap-1 font-medium">
+                                    <i class="fa-solid fa-layer-group text-[9px] text-purple-400"></i> 難易度
+                                </span>
+                                <span id="res-difficulty" class="font-bold text-purple-300 text-xs mt-0.5 truncate">ノーマル</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- スコア送信エリア -->
-                    <div id="ranking-submit-area" class="w-full max-w-[280px] bg-gradient-to-b from-amber-500/15 to-amber-900/20 border border-amber-500/30 p-3 rounded-2xl mb-5 text-left shadow-lg">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-xs font-bold text-amber-300 flex items-center gap-1">
+                    <div id="ranking-submit-area" class="w-full bg-gradient-to-r from-amber-950/40 via-amber-900/30 to-slate-900/80 border border-amber-500/40 p-3 rounded-2xl mb-4 text-left shadow-xl relative">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                                 <i class="fa-solid fa-trophy text-amber-400"></i> ランキングに記録
                             </span>
-                            <span class="text-[10px] text-gray-400">10文字以内</span>
+                            <span class="text-[9px] text-gray-400 font-mono">MAX 10文字</span>
                         </div>
-                        <div class="flex gap-2">
-                            <input type="text" id="ranking-username-input" maxlength="10" placeholder="名前を入力" class="flex-1 bg-black/60 border border-amber-500/40 focus:border-amber-400 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none transition-all placeholder-gray-500">
-                            <button id="ranking-submit-btn" onclick="submitRankingScore()" class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 rounded-xl text-xs font-bold text-black shadow transition-all shrink-0 flex items-center gap-1">
+                        <div class="flex gap-2 items-center">
+                            <input type="text" id="ranking-username-input" maxlength="10" placeholder="名前を入力" class="flex-1 bg-black/70 border border-amber-500/40 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-white focus:outline-none transition-all placeholder-gray-500 min-w-0">
+                            <button id="ranking-submit-btn" onclick="submitRankingScore()" class="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 rounded-xl text-xs font-bold text-black shadow-md transition-all shrink-0 flex items-center justify-center gap-1 whitespace-nowrap">
                                 登録
                             </button>
                         </div>
@@ -175,17 +189,20 @@
                     </div>
 
                     <!-- アクションボタン群 -->
-                    <div class="flex flex-col gap-2.5 w-full items-center max-w-[240px]">
-                        <button onclick="startGame()" class="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-black font-extrabold rounded-full text-base shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <div class="flex flex-col gap-2 w-full items-center">
+                        <button onclick="startGame()" class="w-full py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:brightness-110 text-black font-black rounded-xl text-sm shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 tracking-wide">
                             <i class="fa-solid fa-rotate-right"></i> もう一度遊ぶ
                         </button>
-                        <button onclick="openRankingModal()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-amber-400/40 text-amber-300 hover:text-amber-200 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-trophy"></i> ランキングを見る
-                        </button>
-                        <button onclick="backToTitle()" class="text-xs text-gray-400 hover:text-white underline transition-colors mt-1 py-1">
-                            タイトル画面に戻る
-                        </button>
+                        <div class="grid grid-cols-2 gap-2 w-full">
+                            <button onclick="openRankingModal()" class="py-2.5 bg-white/5 hover:bg-white/10 border border-amber-400/30 text-amber-300 hover:text-amber-200 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-trophy"></i> ランキング
+                            </button>
+                            <button onclick="backToTitle()" class="py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-house"></i> タイトル
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
