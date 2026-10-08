@@ -238,7 +238,7 @@ function createRandomNotification() {
             return {
                 id,
                 createdAt,
-                appName: '経費精算',
+                appName: '経経精算',
                 title: isSpecialCase ? '高額な経費申請が却下されました' : '経費申請が却下されました',
                 icon: 'fa-receipt',
                 bgColor: 'bg-purple-500',
@@ -542,8 +542,8 @@ function resetResultSubmitState() {
     const btn = document.getElementById('ranking-submit-btn');
     if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '登録';
-        btn.className = 'px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 rounded-xl text-xs font-bold text-black shadow transition-all shrink-0 flex items-center justify-center gap-1 whitespace-nowrap';
+        btn.innerHTML = '<i class="fa-solid fa-arrow-up-from-bracket"></i> 同期';
+        btn.className = 'px-3.5 py-2 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 active:scale-95 rounded-xl text-xs font-bold text-white shadow-md transition-all shrink-0 flex items-center justify-center gap-1 whitespace-nowrap border border-blue-400/50';
     }
     const msgEl = document.getElementById('ranking-submit-msg');
     if (msgEl) {
@@ -737,8 +737,8 @@ async function submitRankingScore() {
 
     if (!lastGameResult) return;
 
-    msgEl.textContent = '送信中...';
-    msgEl.className = 'text-[10px] text-amber-300 mt-1.5 text-center font-medium';
+    msgEl.textContent = '同期中...';
+    msgEl.className = 'text-[10px] text-blue-300 mt-1.5 text-center font-medium';
     msgEl.classList.remove('hidden');
 
     try {
@@ -764,11 +764,11 @@ async function submitRankingScore() {
         isScoreSubmitted = true;
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> 登録済み';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> 同期済';
             btn.className = 'px-3 py-1.5 bg-gray-600/80 text-gray-300 cursor-not-allowed rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1 opacity-80 whitespace-nowrap border border-gray-500/30';
         }
 
-        msgEl.textContent = 'スコアを登録しました！';
+        msgEl.textContent = '社内DBに同期完了しました！';
         msgEl.className = 'text-[10px] text-green-400 mt-1.5 text-center font-medium';
 
         // 2.5秒後にスコア登録メッセージを自動消去
@@ -782,7 +782,7 @@ async function submitRankingScore() {
 
     } catch (err) {
         console.error(err);
-        msgEl.textContent = '登録に失敗しました';
+        msgEl.textContent = '同期に失敗しました';
         msgEl.className = 'text-[10px] text-red-400 mt-1.5 text-center font-medium';
     }
 }
