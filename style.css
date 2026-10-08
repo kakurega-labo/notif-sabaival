@@ -27,6 +27,12 @@ body {
     background-color: #767676;
 }
 
+/* クリア時の専用壁紙（背景） */
+.phone-frame.clear-bg {
+    background: url('clear-kabegami.jpg') no-repeat center center / cover !important;
+    background-color: #0f172a !important; /* 画像未設定時のフォールバック色（落ち着いたダークスレート） */
+}
+
 /* PC画面で見る時のための角丸とボーダー（スマホ実機の場合はフルスクリーン） */
 @media (min-width: 450px) {
     body {
