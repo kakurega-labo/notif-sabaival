@@ -9,6 +9,7 @@ let isClockStarted = false; // 時計の二重起動防止用
 let clearedNotificationsCount = 0; // 処理した通知の累積カウント
 let savedUserName = ""; // ユーザー名
 let targetClearCount = 10; // クリアに必要な通知処理数（デフォルト10件）
+let gameStartTime = 0; // ゲーム開始時刻（勤務時間の計測用）
 
 // -----------------------
 // 画面制御ロジック
@@ -28,6 +29,7 @@ function startGame() {
     activeNotifications = [];
     notificationIdCounter = 1;
     clearedNotificationsCount = 0;
+    gameStartTime = Date.now(); // 勤務時間の計測開始時刻を記録
     document.getElementById('notification-container').innerHTML = '';
     
     init(); // ゲームの初期化処理を開始
@@ -78,7 +80,7 @@ function saveUsername() {
 }
 
 // -----------------------
-// 経過時間計算ロジック
+// 経過時間・フォーマット計算ロジック
 // -----------------------
 function calculateTimeAgo(createdAt) {
     const diffInSeconds = Math.floor((Date.now() - createdAt) / 1000);
@@ -87,6 +89,22 @@ function calculateTimeAgo(createdAt) {
     if (diffInMinutes < 60) return `${diffInMinutes}分前`;
     const diffInHours = Math.floor(diffInMinutes / 60);
     return `${diffInHours}時間前`;
+}
+
+function formatElapsedTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}分${seconds}秒`;
+}
+
+function getDifficultyText(count) {
+    switch (count) {
+        case 5: return 'パート(5件)';
+        case 10: return 'ノーマル(10件)';
+        case 20: return 'フルタイム(20件)';
+        default: return `カスタム(${count}件)`;
+    }
 }
 
 // -----------------------
@@ -398,36 +416,38 @@ function renderNotifications() {
         const actionsArea = document.createElement('div');
         actionsArea.className = 'actions-area flex gap-2';
         
-        notif.actions.forEach(action => {
-            const btn = document.createElement('button');
-            btn.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-                action.type === 'slave' 
-                ? 'bg-blue-600/80 hover:bg-blue-500' 
-                : 'bg-red-600/80 hover:bg-red-500'
-            }`;
-            btn.textContent = action.label;
-            
-            btn.onclick = (e) => {
-                e.stopPropagation();
+        if (notif.actions) {
+            notif.actions.forEach(action => {
+                const btn = document.createElement('button');
+                btn.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+                    action.type === 'slave' 
+                    ? 'bg-blue-600/80 hover:bg-blue-500' 
+                    : 'bg-red-600/80 hover:bg-red-500'
+                }`;
+                btn.textContent = action.label;
                 
-                // クリア通知のボタンアクション分岐
-                if (notif.isSpecialClear) {
-                    showToast(action.msg);
-                    setTimeout(() => {
-                        if (action.actionId === 'restart') {
-                            startGame();
-                        } else {
-                            document.getElementById('notification-container').innerHTML = '';
-                            backToTitle();
-                        }
-                    }, 500);
-                } else {
-                    handleAction(notif.id, action.msg, action.damage, action.type);
-                }
-            };
-            
-            actionsArea.appendChild(btn);
-        });
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    
+                    // クリア通知のボタンアクション分岐
+                    if (notif.isSpecialClear) {
+                        showToast(action.msg);
+                        setTimeout(() => {
+                            if (action.actionId === 'restart') {
+                                startGame();
+                            } else {
+                                document.getElementById('notification-container').innerHTML = '';
+                                backToTitle();
+                            }
+                        }, 500);
+                    } else {
+                        handleAction(notif.id, action.msg, action.damage, action.type);
+                    }
+                };
+                
+                actionsArea.appendChild(btn);
+            });
+        }
 
         card.appendChild(mainContent);
         card.appendChild(actionsArea);
@@ -510,10 +530,49 @@ function showClearScreen() {
     document.querySelector('.phone-frame').classList.add('clear-bg');
     document.getElementById('date-display').textContent = 'MISSION CLEAR';
 
-    // クリア用の特別な通知を発行
+    const baseTime = Date.now();
+    const elapsedTime = formatElapsedTime(baseTime - gameStartTime);
+    const difficultyText = getDifficultyText(targetClearCount);
+
+    // 1. ユーザー名通知 (設定時のみ)
+    if (savedUserName) {
+        activeNotifications.push({
+            id: 'result-user-' + baseTime,
+            createdAt: baseTime,
+            appName: '社員情報',
+            title: `担当者：${savedUserName} 様`,
+            icon: 'fa-user',
+            bgColor: 'bg-blue-500',
+            actions: []
+        });
+    }
+
+    // 2. 難易度通知
+    activeNotifications.push({
+        id: 'result-diff-' + baseTime,
+        createdAt: baseTime + 100,
+        appName: '難易度',
+        title: `難易度：${difficultyText}`,
+        icon: 'fa-layer-group',
+        bgColor: 'bg-purple-500',
+        actions: []
+    });
+
+    // 3. 勤務時間通知
+    activeNotifications.push({
+        id: 'result-time-' + baseTime,
+        createdAt: baseTime + 200,
+        appName: '勤務実績',
+        title: `勤務時間：${elapsedTime}`,
+        icon: 'fa-stopwatch',
+        bgColor: 'bg-amber-500',
+        actions: []
+    });
+
+    // 4. MISSION CLEAR 通知 (最後に配信されるため、1番上に表示される)
     const clearNotif = {
-        id: 'clear-' + Date.now(),
-        createdAt: Date.now(),
+        id: 'clear-' + baseTime,
+        createdAt: baseTime + 300,
         appName: 'システム管理',
         title: 'MISSION CLEAR! すべての通知を捌き切りました！',
         icon: 'fa-circle-check',
