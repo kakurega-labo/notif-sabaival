@@ -8,6 +8,7 @@ let notificationIdCounter = 1;
 let isClockStarted = false; // 時計の二重起動防止用
 let clearedNotificationsCount = 0; // 処理した通知の累積カウント
 let savedUserName = ""; // 追加: ユーザー名
+let targetClearCount = 10; // 追加: クリアに必要な通知処理数（デフォルト10件）
 
 // -----------------------
 // 画面制御ロジック
@@ -52,6 +53,11 @@ function toggleWallpaper() {
             phoneFrame.classList.add('no-wallpaper');
         }
     }
+}
+
+function changeDifficulty() {
+    const select = document.getElementById('difficulty-select');
+    targetClearCount = parseInt(select.value, 10);
 }
 
 function saveUsername() {
@@ -451,7 +457,7 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
 
         if (currentBattery <= 0) {
             showGameOverScreen('battery');
-        } else if (clearedNotificationsCount >= 10 && activeNotifications.length === 0) {
+        } else if (clearedNotificationsCount >= targetClearCount && activeNotifications.length === 0) {
             showClearScreen();
         }
     }, 400);
