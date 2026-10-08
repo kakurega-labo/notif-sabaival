@@ -61,7 +61,12 @@ function toggleWallpaper() {
 function changeDifficulty() {
     const select = document.getElementById('difficulty-select');
     targetClearCount = parseInt(select.value, 10);
-    showToast(`ノルマを ${targetClearCount}件 に設定しました`);
+    
+    const msg = document.getElementById('difficulty-msg');
+    if (msg) {
+        msg.classList.remove('hidden');
+        setTimeout(() => msg.classList.add('hidden'), 2000);
+    }
 }
 
 function saveUsername() {
