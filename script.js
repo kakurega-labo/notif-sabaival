@@ -21,6 +21,9 @@ function startGame() {
     // リザルト演出のリセット
     document.querySelector('.phone-frame').classList.remove('clear-bg');
     
+    // 難易度（通知ノルマ）の選択状態を確実に反映
+    changeDifficulty();
+    
     // ゲーム状態のリセット
     activeNotifications = [];
     notificationIdCounter = 1;
@@ -58,6 +61,7 @@ function toggleWallpaper() {
 function changeDifficulty() {
     const select = document.getElementById('difficulty-select');
     targetClearCount = parseInt(select.value, 10);
+    showToast(`ノルマを ${targetClearCount}件 に設定しました`);
 }
 
 function saveUsername() {
