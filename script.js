@@ -737,7 +737,7 @@ async function submitRankingScore() {
 
     if (!lastGameResult) return;
 
-    msgEl.textContent = '同期中...';
+    msgEl.textContent = '登録中...';
     msgEl.className = 'text-[10px] text-blue-300 mt-1.5 text-center font-medium';
     msgEl.classList.remove('hidden');
 
@@ -760,15 +760,15 @@ async function submitRankingScore() {
         const mainInput = document.getElementById('username-input');
         if (mainInput) mainInput.value = name;
 
-        // 送信成功処理：ボタンをグレーアウト＆登録済みに変更
+        // 送信成功処理：ボタンをグレーアウト＆登録済に変更
         isScoreSubmitted = true;
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> 同期済';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> 登録済';
             btn.className = 'px-3 py-1.5 bg-gray-600/80 text-gray-300 cursor-not-allowed rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1 opacity-80 whitespace-nowrap border border-gray-500/30';
         }
 
-        msgEl.textContent = '社内DBに同期完了しました！';
+        msgEl.textContent = '登録が完了しました！';
         msgEl.className = 'text-[10px] text-green-400 mt-1.5 text-center font-medium';
 
         // 2.5秒後にスコア登録メッセージを自動消去
@@ -782,7 +782,7 @@ async function submitRankingScore() {
 
     } catch (err) {
         console.error(err);
-        msgEl.textContent = '同期に失敗しました';
+        msgEl.textContent = '登録に失敗しました';
         msgEl.className = 'text-[10px] text-red-400 mt-1.5 text-center font-medium';
     }
 }
