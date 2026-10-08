@@ -17,6 +17,9 @@ function startGame() {
     document.getElementById('title-screen').classList.add('hidden');
     document.getElementById('clear-screen').classList.add('hidden');
     
+    // リザルト演出のリセット
+    document.querySelector('.phone-frame').classList.remove('clear-bg');
+    
     // ゲーム状態のリセット
     activeNotifications = [];
     notificationIdCounter = 1;
@@ -487,6 +490,10 @@ function showGameOverScreen(reason = 'battery') {
 
 function showClearScreen() {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
+
+    // リザルト演出：壁紙をクリア専用に切り替え、日付を MISSION CLEAR に変更
+    document.querySelector('.phone-frame').classList.add('clear-bg');
+    document.getElementById('date-display').textContent = 'MISSION CLEAR';
 
     // クリア用の特別な通知を発行
     const clearNotif = {
