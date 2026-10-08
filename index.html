@@ -41,12 +41,18 @@
                 <!-- JavaScriptでここに通知が生成されます -->
             </div>
 
+            <!-- タイトル画面 -->
             <div id="title-screen" class="absolute inset-0 flex flex-col bg-black/80 backdrop-blur-sm z-50 text-white p-6 text-center">
                 <div class="flex-1 flex flex-col items-center justify-center">
                     <h1 class="text-3xl font-bold mb-8 drop-shadow-md">ロック画面de<br>通知捌いばる</h1>
-                    <button onclick="startGame()" class="px-8 py-3 bg-[#fc9500] hover:bg-[#ffb831] rounded-full font-bold text-lg transition-colors w-full max-w-[200px]">
-                        スタート
-                    </button>
+                    <div class="flex flex-col gap-3 w-full max-w-[200px]">
+                        <button onclick="startGame()" class="px-8 py-3 bg-[#fc9500] hover:bg-[#ffb831] rounded-full font-bold text-lg transition-colors w-full">
+                            スタート
+                        </button>
+                        <button onclick="openRankingModal()" class="px-6 py-2 bg-amber-600/80 hover:bg-amber-500 rounded-full font-bold transition-colors w-full flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-trophy"></i> ランキング
+                        </button>
+                    </div>
                 </div>
                 <div class="flex flex-col items-center pb-8">
                     <button onclick="showHowToPlay()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full font-bold transition-colors w-full max-w-[200px]">
@@ -55,6 +61,7 @@
                 </div>
             </div>
 
+            <!-- 遊び方/設定画面 -->
             <div id="how-to-play-screen" class="hidden absolute inset-0 flex flex-col bg-black/90 backdrop-blur-md z-50 text-white p-6">
                 <h2 class="text-2xl font-bold mb-4 mt-4 text-center shrink-0">遊び方 / 設定</h2>
                 
@@ -86,11 +93,11 @@
                         <p id="difficulty-msg" class="text-xs text-green-400 mt-1 hidden">変更しました！</p>
                     </div>
 
-                    <!-- ユーザー名設定 -->
+                    <!-- ユーザー名設定（10文字制限追加） -->
                     <div class="w-full p-3 bg-white/10 rounded-xl">
-                        <span class="text-sm font-bold block mb-2">ユーザー名（任意）</span>
+                        <span class="text-sm font-bold block mb-2">ユーザー名（任意・10文字以内）</span>
                         <div class="flex gap-2">
-                            <input type="text" id="username-input" placeholder="ユーザー名を入力" class="flex-1 bg-black/50 border border-gray-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-white">
+                            <input type="text" id="username-input" maxlength="10" placeholder="ユーザー名を入力" class="flex-1 bg-black/50 border border-gray-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-white">
                             <button onclick="saveUsername()" class="px-3 py-1 bg-[#fc9500] hover:bg-[#ffb831] rounded text-sm font-bold transition-colors">保存</button>
                         </div>
                         <p id="username-msg" class="text-xs text-green-400 mt-1 hidden">保存しました！</p>
@@ -112,20 +119,81 @@
                 </div>
             </div>
 
-            <!-- クリア画面のUIは削除し、ゲームオーバー専用として残す -->
+            <!-- リザルト / ゲームオーバー画面 -->
             <div id="clear-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm z-40 text-white p-6 text-center">
-                <i id="end-icon" class="fa-solid fa-battery-empty text-6xl mb-4 text-red-500"></i>
-                <h2 id="end-title" class="text-3xl font-bold mb-2">電源切れ</h2>
-                <p id="end-desc" class="text-gray-200 text-sm">バッテリーが切れ、音信不通になりました...</p>
-                <div class="mt-8 flex flex-col gap-3 w-full items-center">
-                    <button onclick="startGame()" class="px-6 py-3 bg-[#fc9500] hover:bg-[#ffb831] rounded-full font-bold transition-colors w-full max-w-[200px]">
+                <i id="end-icon" class="fa-solid fa-battery-empty text-6xl mb-3 text-red-500"></i>
+                <h2 id="end-title" class="text-3xl font-bold mb-1">電源切れ</h2>
+                <p id="end-desc" class="text-gray-200 text-xs mb-4">バッテリーが切れ、音信不通になりました...</p>
+                
+                <!-- スコア送信エリア -->
+                <div id="ranking-submit-area" class="w-full max-w-[260px] bg-white/10 p-3 rounded-xl mb-4 text-left">
+                    <span class="text-xs font-bold block mb-1">ランキングにスコアを登録</span>
+                    <div class="flex gap-2">
+                        <input type="text" id="ranking-username-input" maxlength="10" placeholder="名前 (10文字以内)" class="flex-1 bg-black/60 border border-gray-500 rounded px-2 py-1 text-xs text-white focus:outline-none">
+                        <button onclick="submitRankingScore()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 rounded text-xs font-bold text-black transition-colors shrink-0">
+                            登録
+                        </button>
+                    </div>
+                    <p id="ranking-submit-msg" class="text-[10px] text-amber-300 mt-1 hidden"></p>
+                </div>
+
+                <div class="flex flex-col gap-2 w-full items-center max-w-[200px]">
+                    <button onclick="openRankingModal()" class="px-6 py-2 bg-amber-600 hover:bg-amber-500 rounded-full font-bold text-sm transition-colors w-full flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-trophy"></i> ランキングを見る
+                    </button>
+                    <button onclick="startGame()" class="px-6 py-2.5 bg-[#fc9500] hover:bg-[#ffb831] rounded-full font-bold text-sm transition-colors w-full">
                         もう一度
                     </button>
-                    <button onclick="backToTitle()" class="text-sm text-gray-400 hover:text-white underline transition-colors">
+                    <button onclick="backToTitle()" class="text-xs text-gray-400 hover:text-white underline transition-colors mt-1">
                         タイトル画面に戻る
                     </button>
                 </div>
             </div>
+
+            <!-- 全画面共通：ランキングモーダル -->
+            <div id="ranking-modal" class="hidden absolute inset-0 flex flex-col bg-black/90 backdrop-blur-md z-50 text-white p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-400"></i> ランキング TOP100
+                    </h2>
+                    <button onclick="closeRankingModal()" class="text-gray-400 hover:text-white p-1 text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- 難易度切り替えタブ -->
+                <div class="flex bg-white/10 rounded-lg p-1 mb-3 text-xs">
+                    <button onclick="switchRankingTab('5')" id="tab-diff-5" class="flex-1 py-1.5 rounded-md font-bold transition-all bg-amber-500 text-black">
+                        パート (5件)
+                    </button>
+                    <button onclick="switchRankingTab('10')" id="tab-diff-10" class="flex-1 py-1.5 rounded-md font-bold transition-all text-gray-300">
+                        ノーマル (10件)
+                    </button>
+                    <button onclick="switchRankingTab('20')" id="tab-diff-20" class="flex-1 py-1.5 rounded-md font-bold transition-all text-gray-300">
+                        フルタイム (20件)
+                    </button>
+                </div>
+
+                <!-- ランキングリストヘッダー -->
+                <div class="grid grid-cols-12 text-[10px] text-gray-400 border-b border-gray-700 pb-1 mb-1 px-2 font-bold">
+                    <span class="col-span-2">順位</span>
+                    <span class="col-span-5">ユーザー名</span>
+                    <span class="col-span-3 text-right">タイム</span>
+                    <span class="col-span-2 text-right">残充電</span>
+                </div>
+
+                <!-- ランキング一覧リスト -->
+                <div id="ranking-list" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 text-xs">
+                    <div class="text-center py-8 text-gray-400">読み込み中...</div>
+                </div>
+
+                <div class="pt-3 flex justify-center">
+                    <button onclick="closeRankingModal()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-full text-xs font-bold transition-colors">
+                        閉じる
+                    </button>
+                </div>
+            </div>
+
         </div>
 
         <div id="toast" class="toast">アクションを実行しました</div>
