@@ -547,25 +547,25 @@ function showClearScreen() {
         });
     }
 
-    // 2. 難易度通知
-    activeNotifications.push({
-        id: 'result-diff-' + baseTime,
-        createdAt: baseTime + 100,
-        appName: '難易度',
-        title: `難易度：${difficultyText}`,
-        icon: 'fa-layer-group',
-        bgColor: 'bg-purple-500',
-        actions: []
-    });
-
-    // 3. 勤務時間通知
+    // 2. 勤務時間通知
     activeNotifications.push({
         id: 'result-time-' + baseTime,
-        createdAt: baseTime + 200,
+        createdAt: baseTime + 100,
         appName: '勤務実績',
         title: `勤務時間：${elapsedTime}`,
         icon: 'fa-stopwatch',
         bgColor: 'bg-amber-500',
+        actions: []
+    });
+
+    // 3. 難易度通知
+    activeNotifications.push({
+        id: 'result-diff-' + baseTime,
+        createdAt: baseTime + 200,
+        appName: '難易度',
+        title: `難易度：${difficultyText}`,
+        icon: 'fa-layer-group',
+        bgColor: 'bg-purple-500',
         actions: []
     });
 
