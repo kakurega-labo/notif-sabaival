@@ -15,6 +15,7 @@ let gameStartTime = 0; // ゲーム開始時刻（勤務時間の計測用）
 // ランキング用状態
 let currentRankingDifficulty = "5"; // モーダルで表示中の難易度タグ
 let lastGameResult = null; // スコア送信用の最終リザルト情報
+let isScoreSubmitted = false; // 今回のスコアが送信済みかどうかのフラグ
 
 // -----------------------
 // 画面制御ロジック
@@ -446,23 +447,7 @@ function renderNotifications() {
                 
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    
-                    // クリア通知のボタンアクション分岐
-                    if (notif.isSpecialClear) {
-                        showToast(action.msg);
-                        setTimeout(() => {
-                            if (action.actionId === 'restart') {
-                                startGame();
-                            } else if (action.actionId === 'ranking') {
-                                openRankingModal(targetClearCount.toString());
-                            } else {
-                                document.getElementById('notification-container').innerHTML = '';
-                                backToTitle();
-                            }
-                        }, 500);
-                    } else {
-                        handleAction(notif.id, action.msg, action.damage, action.type);
-                    }
+                    handleAction(notif.id, action.msg, action.damage, action.type);
                 };
                 
                 actionsArea.appendChild(btn);
@@ -543,6 +528,41 @@ function prepareResultData(isClear = true) {
     if (rankingInput) {
         rankingInput.value = savedUserName || "";
     }
+
+    // スコア登録ボタンの状態リセット
+    resetResultSubmitState();
+
+    // 画面上の業務成績レポートサマリーカードを更新
+    updateResultSummaryCard();
+}
+
+function resetResultSubmitState() {
+    isScoreSubmitted = false;
+    const btn = document.getElementById('ranking-submit-btn');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '登録';
+        btn.className = 'px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 rounded-xl text-xs font-bold text-black shadow transition-all shrink-0 flex items-center gap-1';
+    }
+    const msgEl = document.getElementById('ranking-submit-msg');
+    if (msgEl) {
+        msgEl.classList.add('hidden');
+        msgEl.textContent = '';
+    }
+}
+
+function updateResultSummaryCard() {
+    if (!lastGameResult) return;
+
+    const clearedEl = document.getElementById('res-cleared-count');
+    const timeEl = document.getElementById('res-clear-time');
+    const batteryEl = document.getElementById('res-battery');
+    const diffEl = document.getElementById('res-difficulty');
+
+    if (clearedEl) clearedEl.textContent = `${lastGameResult.clearedCount}件`;
+    if (timeEl) timeEl.textContent = lastGameResult.clearTimeStr;
+    if (batteryEl) batteryEl.textContent = `${lastGameResult.endBattery}%`;
+    if (diffEl) diffEl.textContent = getDifficultyText(parseInt(lastGameResult.difficulty, 10));
 }
 
 function showGameOverScreen(reason = 'battery') {
@@ -556,11 +576,11 @@ function showGameOverScreen(reason = 'battery') {
     const desc = document.getElementById('end-desc');
 
     if (reason === 'battery') {
-        icon.className = 'fa-solid fa-battery-empty text-6xl mb-4 text-red-500';
+        icon.className = 'fa-solid fa-battery-empty text-5xl text-red-500 drop-shadow-lg';
         title.textContent = '電源切れ';
         desc.textContent = 'バッテリーが切れ、音信不通になりました...';
     } else if (reason === 'overflow') {
-        icon.className = 'fa-solid fa-dumpster-fire text-6xl mb-4 text-yellow-500';
+        icon.className = 'fa-solid fa-dumpster-fire text-5xl text-yellow-500 drop-shadow-lg';
         title.textContent = '処理落ち';
         desc.textContent = '通知が溜まりすぎて熱暴走しました...';
     }
@@ -577,69 +597,11 @@ function showClearScreen() {
     document.querySelector('.phone-frame').classList.add('clear-bg');
     document.getElementById('date-display').textContent = 'MISSION CLEAR';
 
-    const baseTime = Date.now();
-    const elapsedTime = formatElapsedTime(baseTime - gameStartTime);
-    const difficultyText = getDifficultyText(targetClearCount);
-
-    // 1. ユーザー名通知 (設定時のみ)
-    if (savedUserName) {
-        activeNotifications.push({
-            id: 'result-user-' + baseTime,
-            createdAt: baseTime,
-            appName: '社員情報',
-            title: `担当者：${savedUserName} 様`,
-            icon: 'fa-user',
-            bgColor: 'bg-blue-500',
-            actions: []
-        });
-    }
-
-    // 2. 勤務時間通知
-    activeNotifications.push({
-        id: 'result-time-' + baseTime,
-        createdAt: baseTime + 100,
-        appName: '勤務実績',
-        title: `勤務時間：${elapsedTime}`,
-        icon: 'fa-stopwatch',
-        bgColor: 'bg-amber-500',
-        actions: []
-    });
-
-    // 3. 難易度通知
-    activeNotifications.push({
-        id: 'result-diff-' + baseTime,
-        createdAt: baseTime + 200,
-        appName: '難易度',
-        title: `難易度：${difficultyText}`,
-        icon: 'fa-layer-group',
-        bgColor: 'bg-purple-500',
-        actions: []
-    });
-
-    // 4. MISSION CLEAR 通知
-    const clearNotif = {
-        id: 'clear-' + baseTime,
-        createdAt: baseTime + 300,
-        appName: 'システム管理',
-        title: 'MISSION CLEAR! すべての通知を捌き切りました！',
-        icon: 'fa-circle-check',
-        bgColor: 'bg-green-500',
-        isSpecialClear: true, // クリア通知判定フラグ
-        actions: [
-            { label: 'ランキングを見る', type: 'slave', msg: 'ランキングを開きます...', actionId: 'ranking' },
-            { label: 'もう一度遊ぶ', type: 'slave', msg: '再起動します...', actionId: 'restart' },
-            { label: 'タイトルに戻る', type: 'rebel', msg: 'お疲れ様でした。', actionId: 'title' }
-        ]
-    };
-
-    activeNotifications.push(clearNotif);
-    renderNotifications();
-
-    // クリア時はモーダル付きでリザルト画面を表示できる用意をする
+    // 全画面リザルト画面を表示
     document.getElementById('clear-screen').classList.remove('hidden');
-    document.getElementById('end-icon').className = 'fa-solid fa-trophy text-6xl mb-2 text-amber-400';
+    document.getElementById('end-icon').className = 'fa-solid fa-trophy text-5xl text-amber-400 drop-shadow-lg';
     document.getElementById('end-title').textContent = 'MISSION CLEAR!';
-    document.getElementById('end-desc').textContent = `クリアタイム: ${elapsedTime} (残充電: ${currentBattery}%)`;
+    document.getElementById('end-desc').textContent = 'すべての業務通知を完璧に捌き切りました！';
 }
 
 // -----------------------
@@ -701,7 +663,8 @@ async function fetchRanking(diff) {
             else if (rank === 2) badgeClass = 'rank-2';
             else if (rank === 3) badgeClass = 'rank-3';
 
-            const clearedStr = item.clearedCount !== undefined ? `${item.clearedCount}件` : '-';
+            const clearedCount = item.clearedCount ?? item.cleared_count;
+            const clearedStr = (clearedCount !== undefined && clearedCount !== null) ? `${clearedCount}件` : '-';
             const batteryStr = (item.startBattery !== undefined && item.endBattery !== undefined) 
                 ? `${item.startBattery}▶︎${item.endBattery}` 
                 : `${item.endBattery}%`;
@@ -756,13 +719,16 @@ function updateUserRankStatus(rankingData) {
 }
 
 async function submitRankingScore() {
+    if (isScoreSubmitted) return; // 既に送信済みの場合は処理中断
+
     const nameInput = document.getElementById('ranking-username-input');
     const msgEl = document.getElementById('ranking-submit-msg');
+    const btn = document.getElementById('ranking-submit-btn');
     const name = nameInput.value.trim().substring(0, 10);
 
     if (!name) {
         msgEl.textContent = '名前を入力してください (10文字以内)';
-        msgEl.className = 'text-[10px] text-red-400 mt-1';
+        msgEl.className = 'text-[10px] text-red-400 mt-1.5 text-center font-medium';
         msgEl.classList.remove('hidden');
         return;
     }
@@ -770,7 +736,7 @@ async function submitRankingScore() {
     if (!lastGameResult) return;
 
     msgEl.textContent = '送信中...';
-    msgEl.className = 'text-[10px] text-amber-300 mt-1';
+    msgEl.className = 'text-[10px] text-amber-300 mt-1.5 text-center font-medium';
     msgEl.classList.remove('hidden');
 
     try {
@@ -792,8 +758,16 @@ async function submitRankingScore() {
         const mainInput = document.getElementById('username-input');
         if (mainInput) mainInput.value = name;
 
-        msgEl.textContent = '登録完了しました！';
-        msgEl.className = 'text-[10px] text-green-400 mt-1';
+        // 送信成功処理：ボタンをグレーアウト＆登録済みに変更
+        isScoreSubmitted = true;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> 登録済み';
+            btn.className = 'px-4 py-1.5 bg-gray-600/60 text-gray-400 cursor-not-allowed rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 opacity-70';
+        }
+
+        msgEl.textContent = 'スコアを登録しました！';
+        msgEl.className = 'text-[10px] text-green-400 mt-1.5 text-center font-medium';
 
         setTimeout(() => {
             openRankingModal(lastGameResult.difficulty);
@@ -802,7 +776,7 @@ async function submitRankingScore() {
     } catch (err) {
         console.error(err);
         msgEl.textContent = '登録に失敗しました';
-        msgEl.className = 'text-[10px] text-red-400 mt-1';
+        msgEl.className = 'text-[10px] text-red-400 mt-1.5 text-center font-medium';
     }
 }
 
