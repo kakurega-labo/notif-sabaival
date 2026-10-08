@@ -7,8 +7,8 @@ let spawnIntervalId = null;
 let notificationIdCounter = 1;
 let isClockStarted = false; // 時計の二重起動防止用
 let clearedNotificationsCount = 0; // 処理した通知の累積カウント
-let savedUserName = ""; // 追加: ユーザー名
-let targetClearCount = 10; // 追加: クリアに必要な通知処理数（デフォルト10件）
+let savedUserName = ""; // ユーザー名
+let targetClearCount = 10; // クリアに必要な通知処理数（デフォルト10件）
 
 // -----------------------
 // 画面制御ロジック
