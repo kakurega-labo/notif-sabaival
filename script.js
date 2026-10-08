@@ -485,20 +485,21 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
     currentBattery = Math.min(100, Math.max(0, currentBattery - damage));
     updateBatteryDisplay(currentBattery);
 
+    // アニメーション開始と同時に内部データとカウントを更新（ワンテンポ遅れるラグを防止）
+    activeNotifications = activeNotifications.filter(n => n.id !== id);
+    clearedNotificationsCount++;
+
     card.classList.add('slide-out-right');
     showToast(message);
 
     setTimeout(() => {
         card.remove();
-        activeNotifications = activeNotifications.filter(n => n.id !== id);
-        clearedNotificationsCount++;
-
         if (currentBattery <= 0) {
             showGameOverScreen('battery');
         } else if (clearedNotificationsCount >= targetClearCount && activeNotifications.length === 0) {
             showClearScreen();
         }
-    }, 400);
+    }, 350);
 }
 
 function showToast(message) {
@@ -519,7 +520,7 @@ function prepareResultData(isClear = true) {
         clearTimeStr: formatElapsedTime(elapsedTimeMs),
         startBattery: initialBattery,
         endBattery: currentBattery,
-        clearedCount: clearedNotificationsCount,
+        clearedCount: Number(clearedNotificationsCount) || 0,
         isClear: isClear ? 1 : 0
     };
 
@@ -542,7 +543,7 @@ function resetResultSubmitState() {
     if (btn) {
         btn.disabled = false;
         btn.innerHTML = '登録';
-        btn.className = 'px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 rounded-xl text-xs font-bold text-black shadow transition-all shrink-0 flex items-center gap-1';
+        btn.className = 'px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 rounded-xl text-xs font-bold text-black shadow transition-all shrink-0 flex items-center justify-center gap-1 whitespace-nowrap';
     }
     const msgEl = document.getElementById('ranking-submit-msg');
     if (msgEl) {
@@ -559,7 +560,8 @@ function updateResultSummaryCard() {
     const batteryEl = document.getElementById('res-battery');
     const diffEl = document.getElementById('res-difficulty');
 
-    if (clearedEl) clearedEl.textContent = `${lastGameResult.clearedCount}件`;
+    const count = (typeof lastGameResult.clearedCount === 'number') ? lastGameResult.clearedCount : clearedNotificationsCount;
+    if (clearedEl) clearedEl.textContent = `${count}件`;
     if (timeEl) timeEl.textContent = lastGameResult.clearTimeStr;
     if (batteryEl) batteryEl.textContent = `${lastGameResult.endBattery}%`;
     if (diffEl) diffEl.textContent = getDifficultyText(parseInt(lastGameResult.difficulty, 10));
@@ -576,11 +578,11 @@ function showGameOverScreen(reason = 'battery') {
     const desc = document.getElementById('end-desc');
 
     if (reason === 'battery') {
-        icon.className = 'fa-solid fa-battery-empty text-5xl text-red-500 drop-shadow-lg';
+        icon.className = 'fa-solid fa-battery-empty text-4xl text-red-500 drop-shadow-md';
         title.textContent = '電源切れ';
         desc.textContent = 'バッテリーが切れ、音信不通になりました...';
     } else if (reason === 'overflow') {
-        icon.className = 'fa-solid fa-dumpster-fire text-5xl text-yellow-500 drop-shadow-lg';
+        icon.className = 'fa-solid fa-dumpster-fire text-4xl text-yellow-500 drop-shadow-md';
         title.textContent = '処理落ち';
         desc.textContent = '通知が溜まりすぎて熱暴走しました...';
     }
@@ -599,7 +601,7 @@ function showClearScreen() {
 
     // 全画面リザルト画面を表示
     document.getElementById('clear-screen').classList.remove('hidden');
-    document.getElementById('end-icon').className = 'fa-solid fa-trophy text-5xl text-amber-400 drop-shadow-lg';
+    document.getElementById('end-icon').className = 'fa-solid fa-trophy text-4xl text-amber-400 drop-shadow-md';
     document.getElementById('end-title').textContent = 'MISSION CLEAR!';
     document.getElementById('end-desc').textContent = 'すべての業務通知を完璧に捌き切りました！';
 }
@@ -763,11 +765,16 @@ async function submitRankingScore() {
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-check"></i> 登録済み';
-            btn.className = 'px-4 py-1.5 bg-gray-600/60 text-gray-400 cursor-not-allowed rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 opacity-70';
+            btn.className = 'px-3 py-1.5 bg-gray-600/80 text-gray-300 cursor-not-allowed rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1 opacity-80 whitespace-nowrap border border-gray-500/30';
         }
 
         msgEl.textContent = 'スコアを登録しました！';
         msgEl.className = 'text-[10px] text-green-400 mt-1.5 text-center font-medium';
+
+        // 2.5秒後にスコア登録メッセージを自動消去
+        setTimeout(() => {
+            if (msgEl) msgEl.classList.add('hidden');
+        }, 2500);
 
         setTimeout(() => {
             openRankingModal(lastGameResult.difficulty);
