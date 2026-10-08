@@ -457,6 +457,10 @@ function renderNotifications() {
 }
 
 function toggleExpand(id) {
+    // 通知データを取得し、アクションボタンがない場合は開かない（無反応にする）
+    const notif = activeNotifications.find(n => n.id === id);
+    if (!notif || !notif.actions || notif.actions.length === 0) return;
+
     const card = document.getElementById(`notif-${id}`);
     if (!card) return;
     
