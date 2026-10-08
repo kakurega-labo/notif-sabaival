@@ -81,6 +81,12 @@ function saveUsername() {
     const msg = document.getElementById('username-msg');
     savedUserName = input.value.trim().substring(0, 10); // 10文字までに制限
     input.value = savedUserName;
+
+    // リザルト側の入力欄にも即時同期
+    const rankingInput = document.getElementById('ranking-username-input');
+    if (rankingInput) {
+        rankingInput.value = savedUserName;
+    }
     
     msg.classList.remove('hidden');
     setTimeout(() => msg.classList.add('hidden'), 2000);
@@ -404,7 +410,7 @@ function renderNotifications() {
         const card = document.createElement('div');
         card.className = `glass-card p-3 text-white shrink-0`;
         card.id = `notif-${notif.id}`;
-        // アクションボタンがない場合はカーソルをデフォルト（指マークにしない）にする
+        // アクションボタンがない場合はカーソルをデフォルトにする
         if (!notif.actions || notif.actions.length === 0) {
             card.style.cursor = 'default';
         }
@@ -683,6 +689,7 @@ async function fetchRanking(diff) {
 
         if (!data || data.length === 0) {
             listContainer.innerHTML = '<div class="text-center py-8 text-gray-500 text-xs">まだ記録がありません。</div>';
+            updateUserRankStatus([]);
             return;
         }
 
@@ -694,22 +701,57 @@ async function fetchRanking(diff) {
             else if (rank === 2) badgeClass = 'rank-2';
             else if (rank === 3) badgeClass = 'rank-3';
 
+            const clearedStr = item.clearedCount !== undefined ? `${item.clearedCount}件` : '-';
+            const batteryStr = (item.startBattery !== undefined && item.endBattery !== undefined) 
+                ? `${item.startBattery}▶︎${item.endBattery}` 
+                : `${item.endBattery}%`;
+
             const row = document.createElement('div');
             row.className = 'grid grid-cols-12 items-center p-2 rounded bg-white/5 border border-white/5 text-xs';
             row.innerHTML = `
                 <div class="col-span-2">
                     <span class="rank-badge ${badgeClass}">${rank}</span>
                 </div>
-                <div class="col-span-5 font-bold truncate pr-1">${escapeHtml(item.username || '名無し')}</div>
-                <div class="col-span-3 text-right text-gray-300 font-mono text-[11px]">${item.clearTimeStr}</div>
-                <div class="col-span-2 text-right font-mono text-amber-300 text-[11px]">${item.endBattery}%</div>
+                <div class="col-span-4 font-bold truncate pr-1">${escapeHtml(item.username || '名無し')}</div>
+                <div class="col-span-2 text-right text-gray-300 font-mono text-[11px]">${clearedStr}</div>
+                <div class="col-span-2 text-right text-gray-300 font-mono text-[11px]">${item.clearTimeStr || '-'}</div>
+                <div class="col-span-2 text-right font-mono text-amber-300 text-[10px] whitespace-nowrap">${batteryStr}</div>
             `;
             listContainer.appendChild(row);
         });
 
+        // 登録ステータス更新
+        updateUserRankStatus(data);
+
     } catch (err) {
         console.error(err);
         listContainer.innerHTML = '<div class="text-center py-8 text-red-400 text-xs">読み込みに失敗しました</div>';
+        updateUserRankStatus([]);
+    }
+}
+
+// ユーザーのランキング登録状態を表示する補助関数
+function updateUserRankStatus(rankingData) {
+    const statusEl = document.getElementById('user-rank-status');
+    if (!statusEl) return;
+
+    const diffText = getDifficultyText(parseInt(currentRankingDifficulty, 10));
+
+    if (!savedUserName) {
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-info mr-1"></i>あなたはまだ未登録です。<br>勤務（プレイ）してランキングに登録しよう！`;
+        statusEl.classList.remove('hidden');
+        return;
+    }
+
+    const myEntryIndex = rankingData.findIndex(item => item.username === savedUserName);
+
+    if (myEntryIndex !== -1) {
+        const rank = myEntryIndex + 1;
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-check text-green-400 mr-1"></i><strong>${escapeHtml(savedUserName)}</strong> さんの【${diffText}】最高順位: <strong>${rank}位</strong>`;
+        statusEl.classList.remove('hidden');
+    } else {
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-info mr-1"></i><strong>${escapeHtml(savedUserName)}</strong> さんは【${diffText}】未登録です。<br>勤務（プレイ）してランキングに登録しよう！`;
+        statusEl.classList.remove('hidden');
     }
 }
 
