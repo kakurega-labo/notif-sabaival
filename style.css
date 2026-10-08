@@ -171,3 +171,29 @@ body {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
+
+/* -----------------------
+   ランキング用スタイル
+   ----------------------- */
+.rank-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+}
+.rank-1 { 
+    background-color: #ffd700; color: #000;
+} /* 金 */
+.rank-2 { 
+    background-color: #c0c0c0; color: #000;
+} /* 銀 */
+.rank-3 { 
+    background-color: #cd7f32; color: #fff;
+} /* 銅 */
+.rank-other { 
+    background-color: rgba(255,255,255,0.1); color: #ccc;
+}
