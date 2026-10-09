@@ -13,6 +13,7 @@ let targetClearCount = 10; // クリアに必要な通知処理数（デフォ�
 let gameStartTime = 0; // ゲーム開始時刻（勤務時間の計測用）
 let comboCount = 0; // 連続コンボ数
 let lastClearedTime = 0; // 直近で通知を処理した時刻
+let comboTimerId = null; // コンボ表示（mobile位置）タイマー管理用
 
 // ランキング用状態
 let currentRankingDifficulty = "5"; // モーダルで表示中の難易度タグ
@@ -43,6 +44,7 @@ function startGame() {
     gameStartTime = Date.now(); // 勤務時間の計測開始時刻を記録
     document.getElementById('notification-container').innerHTML = '';
     
+    updateCarrierDisplay(); // キャリア表示リセット
     init(); // ゲームの初期化処理を開始
 }
 
@@ -57,6 +59,7 @@ function hideHowToPlay() {
 function backToTitle() {
     document.getElementById('clear-screen').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
+    updateCarrierDisplay();
 }
 
 function toggleWallpaper() {
@@ -389,6 +392,30 @@ function updateBatteryDisplay(percent) {
     }
 }
 
+function updateCarrierDisplay(combo = 0) {
+    const carrierEl = document.getElementById('carrier-text');
+    if (!carrierEl) return;
+
+    if (comboTimerId) {
+        clearTimeout(comboTimerId);
+        comboTimerId = null;
+    }
+
+    if (combo >= 2) {
+        carrierEl.textContent = `${combo} COMBO`;
+        carrierEl.classList.add('combo-active');
+
+        // 3.5秒後に元に戻す
+        comboTimerId = setTimeout(() => {
+            carrierEl.textContent = 'mobile';
+            carrierEl.classList.remove('combo-active');
+        }, 3500);
+    } else {
+        carrierEl.textContent = 'mobile';
+        carrierEl.classList.remove('combo-active');
+    }
+}
+
 function startClock() {
     const timeDisplay = document.getElementById('time-display');
     
@@ -511,12 +538,12 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
         setTimeout(() => phoneFrame.classList.remove('shake'), 400);
     }
 
-    // 2コンボ以上の場合、バッテリーボーナスとFont Awesomeアイコン付きメッセージ
+    // コンボメッセージと回復ボーナス処理
     let displayMessage = message;
     if (comboCount >= 2) {
         const bonusBattery = Math.min(15, comboCount * 3);
         currentBattery = Math.min(100, currentBattery + bonusBattery);
-        displayMessage = `<i class="fa-solid fa-fire text-amber-400 mr-1"></i> ${comboCount} COMBO! バッテリー+${bonusBattery}%回復！ (${message})`;
+        displayMessage = `${message} (バッテリー+${bonusBattery}%回復！)`;
         
         // 手応え演出2：回復時の発光エフェクト
         phoneFrame.classList.add('battery-pulse');
@@ -527,9 +554,12 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
         setTimeout(() => phoneFrame.classList.remove('battery-pulse'), 600);
     }
 
+    // キャリア位置にコンボ状態を表示
+    updateCarrierDisplay(comboCount);
+
     updateBatteryDisplay(currentBattery);
 
-    // アニメーション開始と同時に内部データとカウントを更新（ワンテンポ遅れるラグを防止）
+    // アニメーション開始と同時に内部データとカウントを更新
     activeNotifications = activeNotifications.filter(n => n.id !== id);
     clearedNotificationsCount++;
 
@@ -634,6 +664,7 @@ function updateDummyWidgets(isClear) {
     const weatherText = document.getElementById('widget-weather-text');
     const stockIcon = document.getElementById('widget-stock-icon');
     const stockText = document.getElementById('widget-stock-text');
+    const newBestTag = document.getElementById('new-best-tag');
 
     const elapsedTimeMs = Date.now() - gameStartTime;
     const elapsedSeconds = Math.max(1, Math.floor(elapsedTimeMs / 1000));
@@ -644,10 +675,21 @@ function updateDummyWidgets(isClear) {
         score = Math.floor(score / 2);
     }
 
-    if (weatherIcon) weatherIcon.className = 'fa-solid fa-star text-amber-400 text-xl';
+    // 自己ベスト更新判定（ローカルストレージ保持）
+    const storageKey = `notif_survival_best_score_${targetClearCount}`;
+    const previousBest = parseInt(localStorage.getItem(storageKey) || "0", 10);
+    
+    if (score > previousBest) {
+        localStorage.setItem(storageKey, score.toString());
+        if (newBestTag) newBestTag.classList.remove('hidden');
+    } else {
+        if (newBestTag) newBestTag.classList.add('hidden');
+    }
+
+    if (weatherIcon) weatherIcon.className = 'fa-solid fa-star text-amber-400 text-2xl shrink-0';
     if (weatherText) {
         weatherText.textContent = `${score.toLocaleString()} pts`;
-        weatherText.className = 'text-xs font-bold text-amber-300';
+        weatherText.className = 'text-xl font-black text-amber-300 truncate tracking-tight';
     }
 
     let rank = 'C';
@@ -665,8 +707,8 @@ function updateDummyWidgets(isClear) {
 
     if (stockIcon) stockIcon.className = 'fa-solid fa-trophy text-amber-400 text-xl';
     if (stockText) {
-        stockText.textContent = `${rank} ランク`;
-        stockText.className = `text-xs font-bold ${rankColor}`;
+        stockText.textContent = rank;
+        stockText.className = `text-base font-black ${rankColor}`;
     }
 }
 
@@ -766,9 +808,15 @@ async function fetchRanking(diff) {
             else if (rank === 2) badgeClass = 'rank-2';
             else if (rank === 3) badgeClass = 'rank-3';
 
-            const clearedCount = item.clearedCount ?? item.cleared_count;
-            const clearedStr = (clearedCount !== undefined && clearedCount !== null) ? `${clearedCount}件` : '-';
-            const batteryStr = (item.endBattery !== undefined && item.endBattery !== null) ? `${item.endBattery}%` : '-';
+            const clearedCount = item.clearedCount ?? item.cleared_count ?? 0;
+            const clearedStr = `${clearedCount}件`;
+            
+            // スコア算出（クリア件数 × 残バッテリー × 100 / 秒数）
+            const endBattery = item.endBattery ?? 0;
+            const clearTimeSec = item.clearTimeSeconds || 1;
+            const isClear = item.isClear ?? item.is_clear ?? 1;
+            let itemScore = Math.floor((clearedCount * endBattery * 100) / Math.max(1, clearTimeSec));
+            if (!isClear) itemScore = Math.floor(itemScore / 2);
 
             const row = document.createElement('div');
             row.className = 'grid grid-cols-12 items-center p-2 rounded bg-white/5 border border-white/5 text-xs';
@@ -779,7 +827,7 @@ async function fetchRanking(diff) {
                 <div class="col-span-4 font-bold truncate pr-1">${escapeHtml(item.username || '名無し')}</div>
                 <div class="col-span-2 text-right text-gray-300 font-mono text-[11px]">${clearedStr}</div>
                 <div class="col-span-2 text-right text-gray-300 font-mono text-[11px]">${item.clearTimeStr || '-'}</div>
-                <div class="col-span-2 text-right font-mono text-amber-300 text-[10px] whitespace-nowrap">${batteryStr}</div>
+                <div class="col-span-2 text-right font-mono text-amber-300 text-[10px] whitespace-nowrap">${itemScore.toLocaleString()}</div>
             `;
             listContainer.appendChild(row);
         });
