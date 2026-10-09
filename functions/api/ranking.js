@@ -8,7 +8,7 @@ export async function onRequestGet(context) {
             SELECT username, clear_time_str as clearTimeStr, end_battery as endBattery, is_clear as isClear, cleared_count as clearedCount
             FROM ranking
             WHERE difficulty = ?
-            ORDER BY is_clear DESC, clear_time_seconds ASC, end_battery DESC
+            ORDER BY is_clear DESC, clear_time_seconds ASC, end_battery DESC, cleared_count DESC
             LIMIT 100
         `).bind(difficulty).all();
 
