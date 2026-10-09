@@ -16,6 +16,7 @@ let gameStartTime = 0; // ゲーム開始時刻（勤務時間の計測用）
 let currentRankingDifficulty = "5"; // モーダルで表示中の難易度タグ
 let lastGameResult = null; // スコア送信用の最終リザルト情報
 let isScoreSubmitted = false; // 今回のスコアが送信済みかどうかのフラグ
+let toastTimeoutId = null; // トースト通知のタイマー管理用
 
 // -----------------------
 // 画面制御ロジック
@@ -238,7 +239,7 @@ function createRandomNotification() {
             return {
                 id,
                 createdAt,
-                appName: '経経精算',
+                appName: '経費精算',
                 title: isSpecialCase ? '高額な経費申請が却下されました' : '経費申請が却下されました',
                 icon: 'fa-receipt',
                 bgColor: 'bg-purple-500',
@@ -403,12 +404,20 @@ function startClock() {
 // -----------------------
 function renderNotifications() {
     const container = document.getElementById('notification-container');
-    container.innerHTML = '';
-
-    activeNotifications.sort((a, b) => b.createdAt - a.createdAt);
 
     activeNotifications.forEach(notif => {
-        const card = document.createElement('div');
+        let card = document.getElementById(`notif-${notif.id}`);
+        
+        if (card) {
+            // 既に描画済みの場合は経過時間だけ更新する（DOM全消去を防ぎアニメーション中断を回避）
+            const timeSpan = card.querySelector('.time-ago');
+            if (timeSpan) {
+                timeSpan.textContent = calculateTimeAgo(notif.createdAt);
+            }
+            return;
+        }
+
+        card = document.createElement('div');
         card.className = `glass-card p-3 text-white shrink-0`;
         card.id = `notif-${notif.id}`;
         // アクションボタンがない場合はカーソルをデフォルトにする
@@ -426,7 +435,7 @@ function renderNotifications() {
             <div class="flex-1 min-w-0">
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-bold tracking-wide text-white">${notif.appName}</span>
-                    <span class="text-[10px] text-gray-300 ml-2 shrink-0">${calculateTimeAgo(notif.createdAt)}</span>
+                    <span class="time-ago text-[10px] text-gray-300 ml-2 shrink-0">${calculateTimeAgo(notif.createdAt)}</span>
                 </div>
                 <div class="text-xs font-medium text-gray-100 mt-0.5 leading-snug break-words">${notif.title}</div>
             </div>
@@ -457,7 +466,8 @@ function renderNotifications() {
         card.appendChild(mainContent);
         card.appendChild(actionsArea);
         
-        container.appendChild(card);
+        // 配列は常に新しいものが先頭に追加されるので、上に追加していく
+        container.insertBefore(card, container.firstChild);
     });
 }
 
@@ -507,7 +517,11 @@ function showToast(message) {
     toast.textContent = message;
     toast.classList.add('show');
     
-    setTimeout(() => {
+    if (toastTimeoutId) {
+        clearTimeout(toastTimeoutId);
+    }
+    
+    toastTimeoutId = setTimeout(() => {
         toast.classList.remove('show');
     }, 2500);
 }
@@ -563,14 +577,47 @@ function updateResultSummaryCard() {
     const count = (typeof lastGameResult.clearedCount === 'number') ? lastGameResult.clearedCount : clearedNotificationsCount;
     if (clearedEl) clearedEl.textContent = `${count}件`;
     if (timeEl) timeEl.textContent = lastGameResult.clearTimeStr;
-    if (batteryEl) batteryEl.textContent = `${lastGameResult.endBattery}%`;
+    if (batteryEl) batteryEl.textContent = `${lastGameResult.startBattery}▶︎${lastGameResult.endBattery}`;
     if (diffEl) diffEl.textContent = getDifficultyText(parseInt(lastGameResult.difficulty, 10));
+}
+
+// ウィジェット更新用の共通関数
+function updateDummyWidgets(isClear) {
+    const weatherIcon = document.getElementById('widget-weather-icon');
+    const weatherText = document.getElementById('widget-weather-text');
+    const stockIcon = document.getElementById('widget-stock-icon');
+    const stockText = document.getElementById('widget-stock-text');
+
+    if (isClear) {
+        if (weatherIcon) weatherIcon.className = 'fa-solid fa-sun text-orange-400 text-xl';
+        if (weatherText) {
+            weatherText.textContent = '快晴 / 帰宅可能';
+            weatherText.className = 'text-xs font-bold text-orange-300';
+        }
+        if (stockIcon) stockIcon.className = 'fa-solid fa-arrow-trend-up text-green-400 text-xl';
+        if (stockText) {
+            stockText.textContent = '上昇中';
+            stockText.className = 'text-xs font-bold text-green-400';
+        }
+    } else {
+        if (weatherIcon) weatherIcon.className = 'fa-solid fa-cloud-bolt text-gray-400 text-xl';
+        if (weatherText) {
+            weatherText.textContent = '荒天 / 帰宅困難';
+            weatherText.className = 'text-xs font-bold text-white';
+        }
+        if (stockIcon) stockIcon.className = 'fa-solid fa-arrow-trend-down text-red-500 text-xl';
+        if (stockText) {
+            stockText.textContent = '暴落中';
+            stockText.className = 'text-xs font-bold text-red-400';
+        }
+    }
 }
 
 function showGameOverScreen(reason = 'battery') {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
 
     prepareResultData(false);
+    updateDummyWidgets(false); // ダミーウィジェットをゲームオーバー状態に更新
 
     const clearScreen = document.getElementById('clear-screen');
     const icon = document.getElementById('end-icon');
@@ -594,6 +641,7 @@ function showClearScreen() {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
 
     prepareResultData(true);
+    updateDummyWidgets(true); // ダミーウィジェットをクリア状態に更新
 
     // リザルト演出：壁紙をクリア専用に切り替え、日付を MISSION CLEAR に変更
     document.querySelector('.phone-frame').classList.add('clear-bg');
