@@ -22,7 +22,7 @@
             
             <div class="flex justify-between items-center text-white text-xs font-semibold px-2">
                 <div class="flex items-center gap-2">
-                    <span>mobile</span>
+                    <span id="carrier-text" class="transition-all duration-300 font-bold">mobile</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-signal text-[10px]"></i>
@@ -72,25 +72,33 @@
                            <i class="fa-solid fa-battery-full"></i> <strong>バッテリー：</strong><br>0%になると電源切れで即ゲームオーバー
                         </p>
                         <p><strong>基本操作：</strong><br>数秒ごとに届く通知をタップして開き、対応アクションを選択して素早く処理します。</p>
-                       <p><strong>アクション選択：</strong><br>
-                         通知を処理するごとにバッテリー <i class="fa-solid fa-battery-full"></i> を消費します。<br>
-                         ※一部のアクションでバッテリーを充電できます。
-                      </p>
-                      <p><strong>クリア条件：</strong><br>設定した<strong>通知ノルマ</strong>以上の通知を処理し、画面上の通知を<strong>0件</strong>にすることです。</p>
-                      <p><strong>評価基準（ランキングの決定方法）：</strong><br>
-                         以下の順番で評価されます。<br>
-                         ① クリアしたかどうか<br>
-                         ② クリアタイムが早い順<br>
-                         ③ 残充電が多い順<br>
-                         ④ 捌いた通知数が多い順
-                      </p>
-                      <p><strong>ゲームオーバー：</strong><br>
-                         1. <strong>電源切れ：</strong>バッテリー残量が0%になる<br>
-                         2. <strong>処理落ち：</strong>通知が画面に50件溜まる
-                      </p>
-                      <p><strong>ユーザー名設定について：</strong><br>
-                         事前にユーザー名を入力・保存しておくと、プレイ中に自分宛ての通知が届くようになり、さらに楽しめます！※登録する名前はリザルト画面で再度変更できます。
-                      </p>
+                        
+                        <p class="border-t border-white/20 pt-2"><strong>⚡ コンボと回復の仕組み：</strong><br>
+                           通知を処理してから<strong>3.5秒以内</strong>に次の通知を処理するとコンボ発生！<br>
+                           コンボ数が増えるほど<strong>ボーナスでバッテリーが回復</strong>します。素早い連続処理が生存（高スコア）のカギ！<br>
+                           ※コンボ発生中は画面左上のキャリア表示が「〇COMBO」に変わります。
+                        </p>
+
+                        <p class="border-t border-white/20 pt-2"><strong>⚔️ アクション選択（2択）の意味：</strong><br>
+                           ・<span class="text-blue-400 font-bold">🔵 社畜対応</span>：ダメージを最小限に抑え、確実に通知を捌く安定志向のアクション。<br>
+                           ・<span class="text-red-400 font-bold">🔴 反抗対応</span>：ハイリスク・ハイリターン！ダメージが大きいリスクもありますが、エナドリ通知などで<strong>大量バッテリー回復</strong>を一発逆転で狙えるアクションです。
+                        </p>
+
+                        <p class="border-t border-white/20 pt-2"><strong>クリア条件：</strong><br>設定した<strong>通知ノルマ</strong>以上の通知を処理し、画面上の通知を<strong>0件</strong>にすることです。</p>
+                        <p><strong>評価基準（ランキングの決定方法）：</strong><br>
+                           以下の順番で評価されます。<br>
+                           ① クリアしたかどうか<br>
+                           ② クリアタイムが早い順<br>
+                           ③ 残充電が多い順<br>
+                           ④ 捌いた通知数が多い順
+                        </p>
+                        <p><strong>ゲームオーバー：</strong><br>
+                           1. <strong>電源切れ：</strong>バッテリー残量が0%になる<br>
+                           2. <strong>処理落ち：</strong>通知が画面に50件溜まる
+                        </p>
+                        <p><strong>ユーザー名設定について：</strong><br>
+                           事前にユーザー名を入力・保存しておくと、プレイ中に自分宛ての通知が届くようになり、さらに楽しめます！※登録する名前はリザルト画面で再度変更できます。
+                        </p>
                     </div>
 
                     <!-- 出勤時間設定 -->
@@ -145,21 +153,23 @@
                     <h2 id="end-title" class="text-2xl font-black mb-1 tracking-tight drop-shadow">電源切れ</h2>
                     <p id="end-desc" class="text-gray-300 text-[11px] mb-4 font-medium px-2 leading-relaxed">バッテリーが切れ、音信不通になりました...</p>
                     
-                    <!-- ウィジェット（スコア表示） -->
-                    <div class="grid grid-cols-2 gap-2 w-full mb-3">
-                        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
-                           <i id="widget-weather-icon" class="fa-solid fa-star text-amber-400 text-xl"></i>
-                           <div class="flex flex-col text-left">
-                               <span class="text-[9px] text-gray-400">最終スコア</span>
-                               <span id="widget-weather-text" class="text-xs font-bold text-amber-300">0 pts</span>
+                    <!-- ウィジェット（スコア表示 8:2比率） -->
+                    <div class="flex gap-2 w-full mb-3 items-stretch">
+                        <!-- 最終スコア（幅 約8割） -->
+                        <div class="flex-[8] bg-slate-900/80 backdrop-blur-md border border-amber-500/40 rounded-2xl p-3 flex items-center gap-2.5 shadow-lg relative overflow-hidden min-w-0">
+                           <i id="widget-weather-icon" class="fa-solid fa-star text-amber-400 text-2xl shrink-0"></i>
+                           <div class="flex flex-col text-left min-w-0 flex-1">
+                               <div class="flex items-center gap-1.5">
+                                   <span class="text-[9px] text-gray-400 font-semibold uppercase tracking-wider">最終スコア</span>
+                                   <span id="new-best-tag" class="hidden text-[9px] bg-gradient-to-r from-amber-400 to-orange-500 text-black font-black px-1.5 py-0.5 rounded-full animate-pulse">🎉 自己ベスト更新！</span>
+                               </div>
+                               <span id="widget-weather-text" class="text-xl font-black text-amber-300 truncate tracking-tight">0 pts</span>
                            </div>
                         </div>
-                        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
-                           <i id="widget-stock-icon" class="fa-solid fa-trophy text-amber-400 text-xl"></i>
-                           <div class="flex flex-col text-left">
-                               <span class="text-[9px] text-gray-400">スコアランク</span>
-                               <span id="widget-stock-text" class="text-xs font-bold text-white">-</span>
-                           </div>
+                        <!-- スコアランク（幅 約2割） -->
+                        <div class="flex-[2] bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2 flex flex-col items-center justify-center shadow-lg shrink-0">
+                           <span class="text-[8px] text-gray-400 font-bold uppercase">RANK</span>
+                           <span id="widget-stock-text" class="text-base font-black text-amber-300 mt-0.5">-</span>
                         </div>
                     </div>
 
@@ -197,7 +207,7 @@
                         </div>
                     </div>
 
-                    <!-- スコア送信エリア (クラウド同期風ウィジェット) -->
+                    <!-- スコア送信エリア -->
                     <div id="ranking-submit-area" class="w-full bg-slate-900/80 backdrop-blur-md border border-blue-500/30 p-3 rounded-2xl mb-4 text-left shadow-xl relative overflow-hidden">
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl pointer-events-none"></div>
                         
@@ -267,7 +277,7 @@
                     <span class="col-span-4">ユーザー名</span>
                     <span class="col-span-2 text-right">通知数</span>
                     <span class="col-span-2 text-right">タイム</span>
-                    <span class="col-span-2 text-right">残充電</span>
+                    <span class="col-span-2 text-right">スコア</span>
                 </div>
 
                 <!-- ランキング一覧リスト -->
