@@ -145,20 +145,20 @@
                     <h2 id="end-title" class="text-2xl font-black mb-1 tracking-tight drop-shadow">電源切れ</h2>
                     <p id="end-desc" class="text-gray-300 text-[11px] mb-4 font-medium px-2 leading-relaxed">バッテリーが切れ、音信不通になりました...</p>
                     
-                    <!-- ウィジェット（ゲーム結果連動型） -->
+                    <!-- ウィジェット（スコア表示） -->
                     <div class="grid grid-cols-2 gap-2 w-full mb-3">
                         <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
-                           <i id="widget-weather-icon" class="fa-solid fa-cloud-bolt text-gray-400 text-xl"></i>
+                           <i id="widget-weather-icon" class="fa-solid fa-star text-amber-400 text-xl"></i>
                            <div class="flex flex-col text-left">
-                               <span class="text-[9px] text-gray-400">社内評価</span>
-                               <span id="widget-weather-text" class="text-xs font-bold text-white">戦力外通告</span>
+                               <span class="text-[9px] text-gray-400">最終スコア</span>
+                               <span id="widget-weather-text" class="text-xs font-bold text-amber-300">0 pts</span>
                            </div>
                         </div>
                         <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
-                           <i id="widget-stock-icon" class="fa-solid fa-arrow-trend-down text-red-500 text-xl"></i>
+                           <i id="widget-stock-icon" class="fa-solid fa-trophy text-amber-400 text-xl"></i>
                            <div class="flex flex-col text-left">
-                               <span class="text-[9px] text-gray-400">精神状態</span>
-                               <span id="widget-stock-text" class="text-xs font-bold text-red-400">限界寸前</span>
+                               <span class="text-[9px] text-gray-400">スコアランク</span>
+                               <span id="widget-stock-text" class="text-xs font-bold text-white">-</span>
                            </div>
                         </div>
                     </div>
