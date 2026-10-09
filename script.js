@@ -565,6 +565,14 @@ function prepareResultData(isClear = true) {
 
 function resetResultSubmitState() {
     isScoreSubmitted = false;
+    
+    // 名前入力欄の有効化・スタイル復元
+    const nameInput = document.getElementById('ranking-username-input');
+    if (nameInput) {
+        nameInput.disabled = false;
+        nameInput.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-black/80');
+    }
+
     const btn = document.getElementById('ranking-submit-btn');
     if (btn) {
         btn.disabled = false;
@@ -593,7 +601,7 @@ function updateResultSummaryCard() {
     if (diffEl) diffEl.textContent = getDifficultyText(parseInt(lastGameResult.difficulty, 10));
 }
 
-// ウィジェット更新用の共通関数（意味のある内容に変更）
+// ウィジェット更新用の関数（ゲーム結果に連動した内容に変更）
 function updateDummyWidgets(isClear) {
     const weatherIcon = document.getElementById('widget-weather-icon');
     const weatherText = document.getElementById('widget-weather-text');
@@ -601,25 +609,25 @@ function updateDummyWidgets(isClear) {
     const stockText = document.getElementById('widget-stock-text');
 
     if (isClear) {
-        if (weatherIcon) weatherIcon.className = 'fa-solid fa-sun text-orange-400 text-xl';
+        if (weatherIcon) weatherIcon.className = 'fa-solid fa-medal text-amber-400 text-xl';
         if (weatherText) {
-            weatherText.textContent = '快晴 / 帰宅可能';
-            weatherText.className = 'text-xs font-bold text-orange-300';
+            weatherText.textContent = '社内エース';
+            weatherText.className = 'text-xs font-bold text-amber-300';
         }
-        if (stockIcon) stockIcon.className = 'fa-solid fa-arrow-trend-up text-green-400 text-xl';
+        if (stockIcon) stockIcon.className = 'fa-solid fa-brain text-green-400 text-xl';
         if (stockText) {
-            stockText.textContent = '上昇中';
+            stockText.textContent = '鉄のメンタル';
             stockText.className = 'text-xs font-bold text-green-400';
         }
     } else {
-        if (weatherIcon) weatherIcon.className = 'fa-solid fa-cloud-bolt text-gray-400 text-xl';
+        if (weatherIcon) weatherIcon.className = 'fa-solid fa-triangle-exclamation text-red-500 text-xl';
         if (weatherText) {
-            weatherText.textContent = '荒天 / 帰宅困難';
+            weatherText.textContent = '戦力外通告';
             weatherText.className = 'text-xs font-bold text-white';
         }
-        if (stockIcon) stockIcon.className = 'fa-solid fa-arrow-trend-down text-red-500 text-xl';
+        if (stockIcon) stockIcon.className = 'fa-solid fa-heart-crack text-red-400 text-xl';
         if (stockText) {
-            stockText.textContent = '暴落中';
+            stockText.textContent = '限界寸前';
             stockText.className = 'text-xs font-bold text-red-400';
         }
     }
@@ -729,9 +737,11 @@ async function fetchRanking(diff) {
 
             const clearedCount = item.clearedCount ?? item.cleared_count;
             const clearedStr = (clearedCount !== undefined && clearedCount !== null) ? `${clearedCount}件` : '-';
-            const batteryStr = (item.startBattery !== undefined && item.endBattery !== undefined) 
+            
+            // 残充電を「始充電▶︎終充電」形式で表示
+            const batteryStr = (item.startBattery !== undefined && item.startBattery !== null && item.endBattery !== undefined) 
                 ? `${item.startBattery}▶︎${item.endBattery}` 
-                : `${item.endBattery}%`;
+                : (item.endBattery !== undefined ? `${item.endBattery}%` : '-');
 
             const row = document.createElement('div');
             row.className = 'grid grid-cols-12 items-center p-2 rounded bg-white/5 border border-white/5 text-xs';
@@ -822,8 +832,12 @@ async function submitRankingScore() {
         const mainInput = document.getElementById('username-input');
         if (mainInput) mainInput.value = name;
 
-        // 送信成功処理：ボタンをグレーアウト＆登録済に変更
+        // 送信成功処理：名前入力欄をグレーアウト（編集不可）＆ボタンを登録済みに変更
         isScoreSubmitted = true;
+        if (nameInput) {
+            nameInput.disabled = true;
+            nameInput.classList.add('opacity-50', 'cursor-not-allowed', 'bg-black/80');
+        }
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-check"></i> 登録済';
