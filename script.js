@@ -586,9 +586,8 @@ function attachSwipeEvents(card, notif) {
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         currentX = x - startX;
 
-        // わずかに傾く演出
-        const rotate = currentX * 0.05;
-        card.style.transform = `translateX(${currentX}px) rotate(${rotate}deg)`;
+        // 水平移動のみ（傾けない）
+        card.style.transform = `translateX(${currentX}px)`;
 
         // 方向別の発光フィードバック
         if (currentX > 30) {
