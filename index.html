@@ -140,17 +140,17 @@
                     <!-- ダミーウィジェット（余白埋め＆ウィジェット画面モチーフ用） -->
                     <div class="grid grid-cols-2 gap-2 w-full mb-3">
                         <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
-                           <i class="fa-solid fa-cloud-bolt text-gray-400 text-xl"></i>
+                           <i id="widget-weather-icon" class="fa-solid fa-cloud-bolt text-gray-400 text-xl"></i>
                            <div class="flex flex-col text-left">
                                <span class="text-[9px] text-gray-400">現在地</span>
-                               <span class="text-xs font-bold text-white">荒天 / 帰宅困難</span>
+                               <span id="widget-weather-text" class="text-xs font-bold text-white">荒天 / 帰宅困難</span>
                            </div>
                         </div>
                         <div class="bg-slate-900/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-2.5 flex items-center gap-2 shadow-lg">
-                           <i class="fa-solid fa-arrow-trend-down text-red-500 text-xl"></i>
+                           <i id="widget-stock-icon" class="fa-solid fa-arrow-trend-down text-red-500 text-xl"></i>
                            <div class="flex flex-col text-left">
                                <span class="text-[9px] text-gray-400">自社株価</span>
-                               <span class="text-xs font-bold text-red-400">暴落中</span>
+                               <span id="widget-stock-text" class="text-xs font-bold text-red-400">暴落中</span>
                            </div>
                         </div>
                     </div>
@@ -229,7 +229,7 @@
                 </div>
             </div>
 
-            <!-- 全画面共通：ランキングモーダル（変更なし） -->
+            <!-- 全画面共通：ランキングモーダル -->
             <div id="ranking-modal" class="hidden absolute inset-0 flex flex-col bg-black/90 backdrop-blur-md z-50 text-white p-4">
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-xl font-bold flex items-center gap-2">
@@ -251,6 +251,11 @@
                     <button onclick="switchRankingTab('20')" id="tab-diff-20" class="flex-1 py-1.5 rounded-md font-bold transition-all text-gray-300">
                         フルタイム (20件)
                     </button>
+                </div>
+
+                <!-- ランキングの基準明記を追加 -->
+                <div class="text-[10px] text-gray-300 mb-2 px-2 text-center bg-white/10 rounded py-1.5 border border-white/5">
+                    <i class="fa-solid fa-circle-info text-amber-400"></i> スコア基準：①クリア(生還) ②タイムが早い ③残充電が多い順
                 </div>
 
                 <!-- ランキングリストヘッダー -->
