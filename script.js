@@ -130,12 +130,12 @@ function getDifficultyText(count) {
 }
 
 // -----------------------
-// ランダム通知生成ロジック
+// ランダム通知生成ロジック（ダメージ0を多数拡充）
 // -----------------------
 function createRandomNotification() {
     const id = notificationIdCounter++;
     const createdAt = Date.now(); // 通知が生成された時刻を記録
-    let types = ['missedCall', 'chat', 'calendar', 'overtime', 'email', 'expense', 'systemAlert', 'survey', 'health'];
+    let types = ['missedCall', 'chat', 'calendar', 'overtime', 'email', 'expense', 'systemAlert', 'survey', 'health', 'thanks', 'spam', 'praise'];
     
     // 充電100%以上ならヘルスケア通知を出さない
     if (currentBattery >= 100) {
@@ -157,10 +157,10 @@ function createRandomNotification() {
                 icon: 'fa-phone',
                 bgColor: 'bg-green-500',
                 actions: isSpecialCase ? [
-                    { label: '土下座しながらかけ直す', type: 'slave', damage: 20, msg: '首の皮一枚繋がりました。' },
+                    { label: '土下座しながらかけ直す', type: 'slave', damage: 0, msg: '必死の誠意が伝わりノーダメージ！' },
                     { label: '退職届を準備する', type: 'rebel', damage: 30, msg: 'もう何も怖くありません。' }
                 ] : [
-                    { label: 'すぐかけ直す', type: 'slave', damage: 10, msg: '上司「遅い！どこほっつき歩いてた！」' },
+                    { label: 'すぐかけ直す', type: 'slave', damage: 0, msg: '「すばやい対応だ」と褒められました。' },
                     { label: '電源を切る', type: 'rebel', damage: 20, msg: '物理的にシャットダウンしました。' }
                 ]
             };
@@ -175,10 +175,10 @@ function createRandomNotification() {
                 bgColor: 'bg-blue-500',
                 actions: isSpecialCase ? [
                     { label: '休日対応する', type: 'slave', damage: 10, msg: '貴重な休みが消滅しました。' },
-                    { label: '月曜に見る', type: 'rebel', damage: 25, msg: '週末の平穏を守り抜きました。' }
+                    { label: '月曜に見る', type: 'rebel', damage: 0, msg: '休日の権利を守り抜き無傷！' }
                 ] : [
                     { label: '「承知いたしました」', type: 'slave', damage: 15, msg: '終電コースが確定しました。' },
-                    { label: 'スタンプのみ返す', type: 'rebel', damage: 25, msg: '部長がブチギレています。' }
+                    { label: '定型スタンプのみ返す', type: 'rebel', damage: 0, msg: '定型スタンプでスマートに回避！' }
                 ]
             };
         }
@@ -188,15 +188,15 @@ function createRandomNotification() {
                 id,
                 createdAt,
                 appName: 'カレンダー',
-                title: isSpecialCase ? `このあと ${hour}:00 役員報告会` : `このあと ${hour}:00 緊急会議(任意)`,
+                title: isSpecialCase ? `このあと ${hour}:00 役員報告会` : `このあと ${hour}:00 任意リフレッシュ会`,
                 icon: 'fa-calendar',
                 bgColor: 'bg-red-500',
                 actions: isSpecialCase ? [
                     { label: '準備して挑む', type: 'slave', damage: 20, msg: '胃に穴が開きそうです。' },
                     { label: 'すっぽかす', type: 'rebel', damage: 30, msg: '伝説の社員になりました。' }
                 ] : [
-                    { label: '急いで参加する', type: 'slave', damage: 10, msg: '業務時間外でした。(無給)' },
-                    { label: '仮病を使う', type: 'rebel', damage: 15, msg: '「腹痛のため休みます」と連絡しました。' }
+                    { label: '参加して息抜き', type: 'slave', damage: 0, msg: '雑談でリフレッシュできました。' },
+                    { label: '仕事に集中する', type: 'rebel', damage: 0, msg: '自分のペースを維持しました。' }
                 ]
             };
         }
@@ -217,9 +217,9 @@ function createRandomNotification() {
                 bgColor: 'bg-yellow-500',
                 actions: isHighOvertime ? [
                     { label: '見なかったことにする', type: 'slave', damage: 5, msg: '次は労基に連絡します。' },
-                    { label: '労基の番号を検索', type: 'rebel', damage: 20, msg: '「まだ早い」と怒られました。' }
+                    { label: '定時打刻を申請', type: 'rebel', damage: 0, msg: 'ノーダメージで申請が完了しました！' }
                 ] : [
-                    { label: '確認する', type: 'slave', damage: 5, msg: '勤怠を確認しました。' },
+                    { label: '確認する', type: 'slave', damage: 0, msg: '問題なし！スムーズに確認完了。' },
                     { label: '少しだけ残業をつける', type: 'rebel', damage: 10, msg: '塵も積もれば山となります。' }
                 ]
             };
@@ -234,10 +234,10 @@ function createRandomNotification() {
                 icon: 'fa-envelope',
                 bgColor: 'bg-blue-400',
                 actions: isSpecialCase ? [
-                    { label: '重要メールだけ探す', type: 'slave', damage: 10, msg: '目がかすんできました。' },
+                    { label: '検索フィルターで瞬殺', type: 'slave', damage: 0, msg: '重要メールのみ一元処理完了！' },
                     { label: 'すべて迷惑メールへ', type: 'rebel', damage: 25, msg: '重大な損失が発生した予感がします。' }
                 ] : [
-                    { label: '上から順に処理する', type: 'slave', damage: 15, msg: '果てしない作業が続きます。' },
+                    { label: '一括既読にする', type: 'slave', damage: 0, msg: '一瞬でスッキリ消化しました！' },
                     { label: 'すべて削除する', type: 'rebel', damage: 20, msg: '大事なメールも消え去りました。' }
                 ]
             };
@@ -247,12 +247,12 @@ function createRandomNotification() {
                 id,
                 createdAt,
                 appName: '経費精算',
-                title: isSpecialCase ? '高額な経費申請が却下されました' : '経費申請が却下されました',
+                title: isSpecialCase ? '高額な経費申請が承認されました！' : '経費申請が承認されました',
                 icon: 'fa-receipt',
                 bgColor: 'bg-purple-500',
                 actions: isSpecialCase ? [
-                    { label: '泣く泣く自腹', type: 'slave', damage: 30, msg: '今月の生活費が尽きました。' },
-                    { label: '会社に直接抗議', type: 'rebel', damage: 30, msg: 'しばらく出入り禁止になりました。' }
+                    { label: '領収書を即提出', type: 'slave', damage: 0, msg: '全額無事に還付されました！' },
+                    { label: '経理にお礼を言う', type: 'rebel', damage: 0, msg: '経理部との信頼関係が深まりました。' }
                 ] : [
                     { label: '自腹で支払う', type: 'slave', damage: 25, msg: '財布と精神に痛手を受けました。' },
                     { label: '経理に直談判する', type: 'rebel', damage: 20, msg: '経理部を全般的に敵に回しました。' }
@@ -264,15 +264,15 @@ function createRandomNotification() {
                 id,
                 createdAt,
                 appName: 'システムアラート',
-                title: isSpecialCase ? '【超緊急】サーバーダウン' : '【緊急】大規模なシステム障害発生！',
+                title: isSpecialCase ? '【超緊急】サーバーダウン' : '【定期】セキュリティ更新のお願い',
                 icon: 'fa-triangle-exclamation',
                 bgColor: 'bg-red-600',
                 actions: isSpecialCase ? [
                     { label: '叩き起こされて対応', type: 'slave', damage: 35, msg: '睡眠時間が消滅しました。' },
                     { label: 'スマホの電源を切る', type: 'rebel', damage: 20, msg: '朝起きたら大変なことになっていました。' }
                 ] : [
-                    { label: '休日出勤して復旧', type: 'slave', damage: 30, msg: '大事な休日が全滅しました。' },
-                    { label: '担当外と言い張る', type: 'rebel', damage: 15, msg: '責任転嫁に成功しました。' }
+                    { label: '今すぐアップデート', type: 'slave', damage: 0, msg: '自動再起動でスムーズに完了！' },
+                    { label: 'あとで再起動', type: 'rebel', damage: 0, msg: '後回しにして作業を続行しました。' }
                 ]
             };
         }
@@ -285,11 +285,53 @@ function createRandomNotification() {
                 icon: 'fa-heart-pulse',
                 bgColor: 'bg-pink-500',
                 actions: isSpecialCase ? [
-                    { label: '救急車を呼ぶ', type: 'slave', damage: 0, msg: '一命を取り留めました。' },
+                    { label: '深呼吸する', type: 'slave', damage: 0, msg: '深呼吸して心が落ち着きました。' },
                     { label: '気合いで乗り切る', type: 'rebel', damage: 20, msg: '限界を超えました。' }
                 ] : [
                     { label: 'エナドリを飲む', type: 'rebel', damage: -60, msg: 'カフェインを入れて気力を回復しました！' },
-                    { label: '無視して働く', type: 'slave', damage: 10, msg: '過労一直線です。' }
+                    { label: '軽めのストレッチ', type: 'slave', damage: 0, msg: '身体が軽くなりました！' }
+                ]
+            };
+        }
+        case 'thanks': {
+            return {
+                id,
+                createdAt,
+                appName: '感謝のメッセージ',
+                title: `${n}フォロー助かりました！ありがとう！`,
+                icon: 'fa-thumbs-up',
+                bgColor: 'bg-emerald-500',
+                actions: [
+                    { label: '「どういたしまして！」', type: 'slave', damage: 0, msg: 'ほっこり温かい気持ちになりました。' },
+                    { label: '「ジュースおごってね」', type: 'rebel', damage: 0, msg: '冗談を言い合える仲間が増えました。' }
+                ]
+            };
+        }
+        case 'spam': {
+            return {
+                id,
+                createdAt,
+                appName: '雑務リマインダー',
+                title: '【周知】給湯室の清掃当番について',
+                icon: 'fa-broom',
+                bgColor: 'bg-indigo-500',
+                actions: [
+                    { label: '既読をつけて終了', type: 'slave', damage: 0, msg: 'ノータイムで処理完了！' },
+                    { label: 'スタンプで了解', type: 'rebel', damage: 0, msg: '素早いリアクションでスルー成功！' }
+                ]
+            };
+        }
+        case 'praise': {
+            return {
+                id,
+                createdAt,
+                appName: '人事評価',
+                title: isSpecialCase ? `【承認】${n}定時退社申請が承認されました` : '今週の業務効率賞に選出されました！',
+                icon: 'fa-award',
+                bgColor: 'bg-amber-500',
+                actions: [
+                    { label: 'ガッツポーズ', type: 'slave', damage: 0, msg: 'モチベーションが維持されました！' },
+                    { label: 'さっさと帰宅準備', type: 'rebel', damage: 0, msg: 'ソクホウで退勤の準備を始めました！' }
                 ]
             };
         }
@@ -305,7 +347,7 @@ function createRandomNotification() {
                     { label: 'おとなしく面談に行く', type: 'slave', damage: 20, msg: 'みっちり絞られました。' },
                     { label: '無断欠席する', type: 'rebel', damage: 30, msg: '退職へのカウントダウンが始まりました。' }
                 ] : [
-                    { label: '最高評価を連打', type: 'slave', damage: 5, msg: '会社への忠誠(嘘)を誓いました。' },
+                    { label: 'オール最高評価で送信', type: 'slave', damage: 0, msg: '秒速で回答を終えました！' },
                     { label: '本音の不満を全回答', type: 'rebel', damage: 25, msg: '後日、別室へ呼び出しが決定しました。' }
                 ]
             };
@@ -453,7 +495,7 @@ function startClock() {
 }
 
 // -----------------------
-// UI描画・インタラクション
+// UI描画・インタラクション（スワイプ機能対応）
 // -----------------------
 function renderNotifications() {
     const container = document.getElementById('notification-container');
@@ -507,7 +549,7 @@ function renderNotifications() {
                 
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    handleAction(notif.id, action.msg, action.damage, action.type);
+                    handleAction(notif.id, action.msg, action.damage, action.type, action.type === 'slave' ? 'left' : 'right');
                 };
                 
                 actionsArea.appendChild(btn);
@@ -517,8 +559,80 @@ function renderNotifications() {
         card.appendChild(mainContent);
         card.appendChild(actionsArea);
         
+        // スワイプイベント登録（直感処理）
+        attachSwipeEvents(card, notif);
+
         container.insertBefore(card, container.firstChild);
     });
+}
+
+// -----------------------
+// スワイプジェスチャー処理（直感アクション追加）
+// -----------------------
+function attachSwipeEvents(card, notif) {
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    const onStart = (e) => {
+        if (e.target.closest('button')) return; // ボタンタップ時はカード移動をキャンセル
+        isDragging = true;
+        startX = e.touches ? e.touches[0].clientX : e.clientX;
+        card.classList.add('swiping');
+    };
+
+    const onMove = (e) => {
+        if (!isDragging) return;
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        currentX = x - startX;
+
+        // わずかに傾く演出
+        const rotate = currentX * 0.05;
+        card.style.transform = `translateX(${currentX}px) rotate(${rotate}deg)`;
+
+        // 方向別の発光フィードバック
+        if (currentX > 30) {
+            card.style.backgroundColor = 'rgba(239, 68, 68, 0.35)'; // 右＝反抗（赤）
+        } else if (currentX < -30) {
+            card.style.backgroundColor = 'rgba(59, 130, 246, 0.35)'; // 左＝模範（青）
+        } else {
+            card.style.backgroundColor = '';
+        }
+    };
+
+    const onEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        card.classList.remove('swiping');
+        card.style.transform = '';
+        card.style.backgroundColor = '';
+
+        const threshold = 70; // スワイプ確定しきい値(px)
+        if (currentX < -threshold) {
+            // 左スワイプ：1番目の選択肢（模範）
+            if (notif.actions && notif.actions[0]) {
+                const act = notif.actions[0];
+                handleAction(notif.id, act.msg, act.damage, act.type, 'left');
+            }
+        } else if (currentX > threshold) {
+            // 右スワイプ：2番目の選択肢（反抗）
+            if (notif.actions && notif.actions[1]) {
+                const act = notif.actions[1];
+                handleAction(notif.id, act.msg, act.damage, act.type, 'right');
+            }
+        }
+        currentX = 0;
+    };
+
+    card.addEventListener('touchstart', onStart, { passive: true });
+    card.addEventListener('touchmove', onMove, { passive: true });
+    card.addEventListener('touchend', onEnd);
+
+    card.addEventListener('mousedown', onStart);
+    const onMouseMove = (e) => { if (isDragging) onMove(e); };
+    const onMouseUp = () => { if (isDragging) onEnd(); };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
 }
 
 function toggleExpand(id) {
@@ -537,16 +651,23 @@ function toggleExpand(id) {
     card.classList.toggle('expanded');
 }
 
-function handleAction(id, message, damage = 10, actionType = 'slave') {
+function handleAction(id, message, damage = 10, actionType = 'slave', direction = 'right') {
     const card = document.getElementById(`notif-${id}`);
     if (!card) return;
 
-    // コンボ判定（2.5秒以内に次の通知を処理するとコンボ継続）
+    // コンボ判定（3秒以内 かつ ダメージ0以下でコンボ加算。ダメージを受けるとコンボ途切れる）
     const now = Date.now();
-    if (lastClearedTime && (now - lastClearedTime < 2500)) {
-        comboCount++;
+    const timeDiff = now - lastClearedTime;
+
+    if (damage <= 0) {
+        if (lastClearedTime && timeDiff < 3000) {
+            comboCount++;
+        } else {
+            comboCount = 1;
+        }
     } else {
-        comboCount = 1;
+        // ダメージを食らったらコンボ中断！
+        comboCount = 0;
     }
     lastClearedTime = now;
 
@@ -587,7 +708,11 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
     activeNotifications = activeNotifications.filter(n => n.id !== id);
     clearedNotificationsCount++;
 
-    card.classList.add('slide-out-right');
+    if (direction === 'left') {
+        card.classList.add('slide-out-left');
+    } else {
+        card.classList.add('slide-out-right');
+    }
     showToast(displayMessage);
 
     setTimeout(() => {
