@@ -154,7 +154,7 @@ function createRandomNotification() {
                     { label: '退職届を準備する', type: 'rebel', damage: 30, msg: 'もう何も怖くありません。' }
                 ] : [
                     { label: 'すぐかけ直す', type: 'slave', damage: 10, msg: '上司「遅い！どこほっつき歩いてた！」' },
-                    { label: '電源を切る', type: 'rebel', damage: 20, msg: '物理的にシャットダウンしました。' }
+                    { label: '電源を切る', type: 'rebel', damage: 20, msg: '物理적으로シャットダウンしました。' }
                 ]
             };
         }
@@ -526,6 +526,18 @@ function showToast(message) {
     }, 2500);
 }
 
+// リザルト画面表示時にトーストを強制非表示にする処理
+function hideToastImmediately() {
+    if (toastTimeoutId) {
+        clearTimeout(toastTimeoutId);
+        toastTimeoutId = null;
+    }
+    const toast = document.getElementById('toast');
+    if (toast) {
+        toast.classList.remove('show');
+    }
+}
+
 function prepareResultData(isClear = true) {
     const elapsedTimeMs = Date.now() - gameStartTime;
     lastGameResult = {
@@ -581,7 +593,7 @@ function updateResultSummaryCard() {
     if (diffEl) diffEl.textContent = getDifficultyText(parseInt(lastGameResult.difficulty, 10));
 }
 
-// ウィジェット更新用の共通関数
+// ウィジェット更新用の共通関数（意味のある内容に変更）
 function updateDummyWidgets(isClear) {
     const weatherIcon = document.getElementById('widget-weather-icon');
     const weatherText = document.getElementById('widget-weather-text');
@@ -615,6 +627,7 @@ function updateDummyWidgets(isClear) {
 
 function showGameOverScreen(reason = 'battery') {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
+    hideToastImmediately(); // リザルト画面被り防止のためトーストを消す
 
     prepareResultData(false);
     updateDummyWidgets(false); // ダミーウィジェットをゲームオーバー状態に更新
@@ -639,6 +652,7 @@ function showGameOverScreen(reason = 'battery') {
 
 function showClearScreen() {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
+    hideToastImmediately(); // リザルト画面被り防止のためトーストを消す
 
     prepareResultData(true);
     updateDummyWidgets(true); // ダミーウィジェットをクリア状態に更新
