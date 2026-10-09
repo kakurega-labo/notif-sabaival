@@ -392,6 +392,28 @@ function updateBatteryDisplay(percent) {
     }
 }
 
+function showBatteryBonusText(bonusAmount) {
+    const bonusEl = document.getElementById('battery-bonus-pop');
+    const batteryIcon = document.getElementById('battery-icon');
+    if (!bonusEl) return;
+
+    bonusEl.textContent = `+${bonusAmount}%`;
+    bonusEl.classList.remove('opacity-0', 'translate-y-0');
+    bonusEl.classList.add('opacity-100', 'translate-y-1', 'text-green-400');
+
+    if (batteryIcon) {
+        batteryIcon.classList.add('text-green-400');
+    }
+
+    setTimeout(() => {
+        bonusEl.classList.remove('opacity-100', 'translate-y-1');
+        bonusEl.classList.add('opacity-0', 'translate-y-0');
+        if (batteryIcon && currentBattery > 10) {
+            batteryIcon.classList.remove('text-green-400');
+        }
+    }, 1200);
+}
+
 function updateCarrierDisplay(combo = 0) {
     const carrierEl = document.getElementById('carrier-text');
     if (!carrierEl) return;
@@ -538,18 +560,20 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
         setTimeout(() => phoneFrame.classList.remove('shake'), 400);
     }
 
-    // コンボメッセージと回復ボーナス処理
+    // 10コンボ毎に回復ボーナス処理（10, 20, 30...）
     let displayMessage = message;
-    if (comboCount >= 2) {
-        const bonusBattery = Math.min(15, comboCount * 3);
+    if (comboCount > 0 && comboCount % 10 === 0) {
+        const bonusBattery = 15; // 10コンボ毎に15%固定回復
         currentBattery = Math.min(100, currentBattery + bonusBattery);
-        displayMessage = `${message} (バッテリー+${bonusBattery}%回復！)`;
         
-        // 手応え演出2：回復時の発光エフェクト
+        // バッテリーアイコン直下に%数値を表示 & 発光演出
+        showBatteryBonusText(bonusBattery);
+
         phoneFrame.classList.add('battery-pulse');
         setTimeout(() => phoneFrame.classList.remove('battery-pulse'), 600);
     } else if (damage < 0) {
         // エナドリ等での回復時も発光
+        showBatteryBonusText(Math.abs(damage));
         phoneFrame.classList.add('battery-pulse');
         setTimeout(() => phoneFrame.classList.remove('battery-pulse'), 600);
     }
