@@ -133,7 +133,7 @@ body {
         margin-bottom: 0.75rem;
     }
     50% {
-        transform: translateX(0);
+        transform: translateX(-110%);
         opacity: 0;
         max-height: 200px;
         margin-bottom: 0.75rem;
@@ -141,7 +141,7 @@ body {
         padding-bottom: 0.75rem;
     }
     100% {
-        transform: translateX(0);
+        transform: translateX(-110%);
         opacity: 0;
         max-height: 0;
         margin-bottom: 0;
@@ -164,7 +164,7 @@ body {
         margin-bottom: 0.75rem;
     }
     50% {
-        transform: translateX(0);
+        transform: translateX(-110%);
         opacity: 0;
         max-height: 200px;
         margin-bottom: 0.75rem;
@@ -172,7 +172,7 @@ body {
         padding-bottom: 0.75rem;
     }
     100% {
-        transform: translateX(0);
+        transform: translateX(-110%);
         opacity: 0;
         max-height: 0;
         margin-bottom: 0;
