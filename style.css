@@ -93,6 +93,12 @@ body {
     position: relative;
     z-index: 10;
     overflow: hidden;
+    touch-action: pan-y;
+    will-change: transform;
+}
+
+.glass-card.swiping {
+    transition: none !important;
 }
 
 .glass-card:active {
@@ -115,11 +121,11 @@ body {
 }
 
 .slide-out-right {
-    animation: slideOut 0.35s forwards cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideOutRight 0.35s forwards cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
 }
 
-@keyframes slideOut {
+@keyframes slideOutRight {
     0% {
         transform: translateX(0);
         opacity: 1;
@@ -136,6 +142,37 @@ body {
     }
     100% {
         transform: translateX(110%);
+        opacity: 0;
+        max-height: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        border-width: 0;
+    }
+}
+
+.slide-out-left {
+    animation: slideOutLeft 0.35s forwards cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+@keyframes slideOutLeft {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+        max-height: 200px;
+        margin-bottom: 0.75rem;
+    }
+    50% {
+        transform: translateX(-110%);
+        opacity: 0;
+        max-height: 200px;
+        margin-bottom: 0.75rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+    100% {
+        transform: translateX(-110%);
         opacity: 0;
         max-height: 0;
         margin-bottom: 0;
