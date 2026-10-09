@@ -11,6 +11,8 @@ let clearedNotificationsCount = 0; // 処理した通知の累積カウント
 let savedUserName = ""; // ユーザー名
 let targetClearCount = 10; // クリアに必要な通知処理数（デフォルト10件）
 let gameStartTime = 0; // ゲーム開始時刻（勤務時間の計測用）
+let comboCount = 0; // 連続コンボ数
+let lastClearedTime = 0; // 直近で通知を処理した時刻
 
 // ランキング用状態
 let currentRankingDifficulty = "5"; // モーダルで表示中の難易度タグ
@@ -36,6 +38,8 @@ function startGame() {
     activeNotifications = [];
     notificationIdCounter = 1;
     clearedNotificationsCount = 0;
+    comboCount = 0;
+    lastClearedTime = 0;
     gameStartTime = Date.now(); // 勤務時間の計測開始時刻を記録
     document.getElementById('notification-container').innerHTML = '';
     
@@ -409,7 +413,6 @@ function renderNotifications() {
         let card = document.getElementById(`notif-${notif.id}`);
         
         if (card) {
-            // 既に描画済みの場合は経過時間だけ更新する（DOM全消去を防ぎアニメーション中断を回避）
             const timeSpan = card.querySelector('.time-ago');
             if (timeSpan) {
                 timeSpan.textContent = calculateTimeAgo(notif.createdAt);
@@ -420,7 +423,6 @@ function renderNotifications() {
         card = document.createElement('div');
         card.className = `glass-card p-3 text-white shrink-0`;
         card.id = `notif-${notif.id}`;
-        // アクションボタンがない場合はカーソルをデフォルトにする
         if (!notif.actions || notif.actions.length === 0) {
             card.style.cursor = 'default';
         }
@@ -466,13 +468,11 @@ function renderNotifications() {
         card.appendChild(mainContent);
         card.appendChild(actionsArea);
         
-        // 配列は常に新しいものが先頭に追加されるので、上に追加していく
         container.insertBefore(card, container.firstChild);
     });
 }
 
 function toggleExpand(id) {
-    // 通知データを取得し、アクションボタンがない場合は開かない（無反応にする）
     const notif = activeNotifications.find(n => n.id === id);
     if (!notif || !notif.actions || notif.actions.length === 0) return;
 
@@ -492,7 +492,41 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
     const card = document.getElementById(`notif-${id}`);
     if (!card) return;
 
+    // コンボ判定（3.5秒以内に次の通知を処理するとコンボ継続）
+    const now = Date.now();
+    if (lastClearedTime && (now - lastClearedTime < 3500)) {
+        comboCount++;
+    } else {
+        comboCount = 1;
+    }
+    lastClearedTime = now;
+
+    // 通常のダメージ適用
     currentBattery = Math.min(100, Math.max(0, currentBattery - damage));
+
+    // 手応え演出1：大きなダメージ（20以上）を受けたときに画面を揺らす
+    const phoneFrame = document.querySelector('.phone-frame');
+    if (damage >= 20) {
+        phoneFrame.classList.add('shake');
+        setTimeout(() => phoneFrame.classList.remove('shake'), 400);
+    }
+
+    // 2コンボ以上の場合、バッテリーボーナスとFont Awesomeアイコン付きメッセージ
+    let displayMessage = message;
+    if (comboCount >= 2) {
+        const bonusBattery = Math.min(15, comboCount * 3);
+        currentBattery = Math.min(100, currentBattery + bonusBattery);
+        displayMessage = `<i class="fa-solid fa-fire text-amber-400 mr-1"></i> ${comboCount} COMBO! バッテリー+${bonusBattery}%回復！ (${message})`;
+        
+        // 手応え演出2：回復時の発光エフェクト
+        phoneFrame.classList.add('battery-pulse');
+        setTimeout(() => phoneFrame.classList.remove('battery-pulse'), 600);
+    } else if (damage < 0) {
+        // エナドリ等での回復時も発光
+        phoneFrame.classList.add('battery-pulse');
+        setTimeout(() => phoneFrame.classList.remove('battery-pulse'), 600);
+    }
+
     updateBatteryDisplay(currentBattery);
 
     // アニメーション開始と同時に内部データとカウントを更新（ワンテンポ遅れるラグを防止）
@@ -500,7 +534,7 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
     clearedNotificationsCount++;
 
     card.classList.add('slide-out-right');
-    showToast(message);
+    showToast(displayMessage);
 
     setTimeout(() => {
         card.remove();
@@ -514,7 +548,7 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
 
 function showToast(message) {
     const toast = document.getElementById('toast');
-    toast.textContent = message;
+    toast.innerHTML = message;
     toast.classList.add('show');
     
     if (toastTimeoutId) {
@@ -526,7 +560,6 @@ function showToast(message) {
     }, 2500);
 }
 
-// リザルト画面表示時にトーストを強制非表示にする処理
 function hideToastImmediately() {
     if (toastTimeoutId) {
         clearTimeout(toastTimeoutId);
@@ -550,23 +583,18 @@ function prepareResultData(isClear = true) {
         isClear: isClear ? 1 : 0
     };
 
-    // 名前欄の初期補完
     const rankingInput = document.getElementById('ranking-username-input');
     if (rankingInput) {
         rankingInput.value = savedUserName || "";
     }
 
-    // スコア登録ボタンの状態リセット
     resetResultSubmitState();
-
-    // 画面上の業務成績レポートサマリーカードを更新
     updateResultSummaryCard();
 }
 
 function resetResultSubmitState() {
     isScoreSubmitted = false;
     
-    // 名前入力欄の有効化・スタイル復元
     const nameInput = document.getElementById('ranking-username-input');
     if (nameInput) {
         nameInput.disabled = false;
@@ -601,33 +629,27 @@ function updateResultSummaryCard() {
     if (diffEl) diffEl.textContent = getDifficultyText(parseInt(lastGameResult.difficulty, 10));
 }
 
-// ウィジェット更新用の関数（スコア計算および評価ランク表示に変更）
 function updateDummyWidgets(isClear) {
     const weatherIcon = document.getElementById('widget-weather-icon');
     const weatherText = document.getElementById('widget-weather-text');
     const stockIcon = document.getElementById('widget-stock-icon');
     const stockText = document.getElementById('widget-stock-text');
 
-    // 経過秒数の計算（0秒除算を防ぐため最低1秒に設定）
     const elapsedTimeMs = Date.now() - gameStartTime;
     const elapsedSeconds = Math.max(1, Math.floor(elapsedTimeMs / 1000));
 
-    // スコア計算式: (処理した通知数 × 残充電 × 100) ÷ 経過秒数
     let score = Math.floor((clearedNotificationsCount * currentBattery * 100) / elapsedSeconds);
 
-    // ゲームオーバー時はペナルティとしてスコアを半分にする
     if (!isClear) {
         score = Math.floor(score / 2);
     }
 
-    // スコア表示の更新
     if (weatherIcon) weatherIcon.className = 'fa-solid fa-star text-amber-400 text-xl';
     if (weatherText) {
         weatherText.textContent = `${score.toLocaleString()} pts`;
         weatherText.className = 'text-xs font-bold text-amber-300';
     }
 
-    // スコアランクの判定
     let rank = 'C';
     let rankColor = 'text-gray-300';
     if (score >= 5000) {
@@ -650,10 +672,10 @@ function updateDummyWidgets(isClear) {
 
 function showGameOverScreen(reason = 'battery') {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
-    hideToastImmediately(); // リザルト画面被り防止のためトーストを消す
+    hideToastImmediately();
 
     prepareResultData(false);
-    updateDummyWidgets(false); // ダミーウィジェットをゲームオーバー状態に更新
+    updateDummyWidgets(false);
 
     const clearScreen = document.getElementById('clear-screen');
     const icon = document.getElementById('end-icon');
@@ -675,25 +697,20 @@ function showGameOverScreen(reason = 'battery') {
 
 function showClearScreen() {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
-    hideToastImmediately(); // リザルト画面被り防止のためトーストを消す
+    hideToastImmediately();
 
     prepareResultData(true);
-    updateDummyWidgets(true); // ダミーウィジェットをクリア状態に更新
+    updateDummyWidgets(true);
 
-    // リザルト演出：壁紙をクリア専用に切り替え、日付を MISSION CLEAR に変更
     document.querySelector('.phone-frame').classList.add('clear-bg');
     document.getElementById('date-display').textContent = 'MISSION CLEAR';
 
-    // 全画面リザルト画面を表示
     document.getElementById('clear-screen').classList.remove('hidden');
     document.getElementById('end-icon').className = 'fa-solid fa-trophy text-4xl text-amber-400 drop-shadow-md';
     document.getElementById('end-title').textContent = 'MISSION CLEAR!';
     document.getElementById('end-desc').textContent = 'すべての業務通知を完璧に捌き切りました！';
 }
 
-// -----------------------
-// ランキングAPI通信・モーダル処理
-// -----------------------
 function openRankingModal(diff) {
     if (diff) {
         currentRankingDifficulty = diff;
@@ -712,7 +729,6 @@ function closeRankingModal() {
 function switchRankingTab(diff) {
     currentRankingDifficulty = diff;
 
-    // タブの見た目を切り替え
     ['5', '10', '20'].forEach(d => {
         const tab = document.getElementById(`tab-diff-${d}`);
         if (tab) {
@@ -752,8 +768,6 @@ async function fetchRanking(diff) {
 
             const clearedCount = item.clearedCount ?? item.cleared_count;
             const clearedStr = (clearedCount !== undefined && clearedCount !== null) ? `${clearedCount}件` : '-';
-            
-            // 残充電を「終充電%」形式で表示
             const batteryStr = (item.endBattery !== undefined && item.endBattery !== null) ? `${item.endBattery}%` : '-';
 
             const row = document.createElement('div');
@@ -770,7 +784,6 @@ async function fetchRanking(diff) {
             listContainer.appendChild(row);
         });
 
-        // 登録ステータス更新
         updateUserRankStatus(data);
 
     } catch (err) {
@@ -780,7 +793,6 @@ async function fetchRanking(diff) {
     }
 }
 
-// ユーザーのランキング登録状態を表示する補助関数
 function updateUserRankStatus(rankingData) {
     const statusEl = document.getElementById('user-rank-status');
     if (!statusEl) return;
@@ -805,7 +817,6 @@ function updateUserRankStatus(rankingData) {
     }
 }
 
-// ② 署名を生成する関数（追加）
 async function generateSignature(data) {
     const secret = "notif_survival_secret";
     const message = `${data.difficulty}-${data.username}-${data.clearTimeSeconds}-${data.clearedCount}-${secret}`;
@@ -816,7 +827,7 @@ async function generateSignature(data) {
 }
 
 async function submitRankingScore() {
-    if (isScoreSubmitted) return; // 既に送信済みの場合は処理中断
+    if (isScoreSubmitted) return;
 
     const nameInput = document.getElementById('ranking-username-input');
     const msgEl = document.getElementById('ranking-submit-msg');
@@ -842,7 +853,6 @@ async function submitRankingScore() {
             username: name
         };
 
-        // ② 送信データに署名（ハッシュ値）を付与
         payload.signature = await generateSignature(payload);
 
         const response = await fetch('/api/ranking', {
@@ -853,12 +863,10 @@ async function submitRankingScore() {
 
         if (!response.ok) throw new Error('送信エラー');
 
-        // 保存用ユーザー名も更新
         savedUserName = name;
         const mainInput = document.getElementById('username-input');
         if (mainInput) mainInput.value = name;
 
-        // 送信成功処理：名前入力欄をグレーアウト（編集不可）＆ボタンを登録済みに変更
         isScoreSubmitted = true;
         if (nameInput) {
             nameInput.disabled = true;
@@ -873,7 +881,6 @@ async function submitRankingScore() {
         msgEl.textContent = '登録が完了しました！';
         msgEl.className = 'text-[10px] text-green-400 mt-1.5 text-center font-medium';
 
-        // 2.5秒後にスコア登録メッセージを自動消去
         setTimeout(() => {
             if (msgEl) msgEl.classList.add('hidden');
         }, 2500);
