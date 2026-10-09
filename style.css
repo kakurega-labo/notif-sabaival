@@ -46,6 +46,13 @@ body {
     animation: pulse-green 0.6s ease-out;
 }
 
+/* キャリア名位置のコンボ強調スタイル */
+.combo-active {
+    color: #fbbf24 !important;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+    font-weight: 800 !important;
+}
+
 .phone-frame.clear-bg {
     background: url('clear-kabegami.jpg') no-repeat center center / cover !important;
     background-color: #0f172a !important;
