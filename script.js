@@ -154,7 +154,7 @@ function createRandomNotification() {
                     { label: '退職届を準備する', type: 'rebel', damage: 30, msg: 'もう何も怖くありません。' }
                 ] : [
                     { label: 'すぐかけ直す', type: 'slave', damage: 10, msg: '上司「遅い！どこほっつき歩いてた！」' },
-                    { label: '電源を切る', type: 'rebel', damage: 20, msg: '物理적으로シャットダウンしました。' }
+                    { label: '電源を切る', type: 'rebel', damage: 20, msg: '物理的にシャットダウンしました。' }
                 ]
             };
         }
@@ -354,8 +354,8 @@ function setRandomDate() {
 }
 
 function setRandomBattery() {
-    currentBattery = Math.floor(Math.random() * 100) + 1;
-    initialBattery = currentBattery; // 開始時のバッテリーを保持
+    currentBattery = 100;
+    initialBattery = 100; // 開始時のバッテリーを保持
     updateBatteryDisplay(currentBattery);
 }
 
@@ -597,39 +597,54 @@ function updateResultSummaryCard() {
     const count = (typeof lastGameResult.clearedCount === 'number') ? lastGameResult.clearedCount : clearedNotificationsCount;
     if (clearedEl) clearedEl.textContent = `${count}件`;
     if (timeEl) timeEl.textContent = lastGameResult.clearTimeStr;
-    if (batteryEl) batteryEl.textContent = `${lastGameResult.startBattery}▶︎${lastGameResult.endBattery}`;
+    if (batteryEl) batteryEl.textContent = `${lastGameResult.endBattery}%`;
     if (diffEl) diffEl.textContent = getDifficultyText(parseInt(lastGameResult.difficulty, 10));
 }
 
-// ウィジェット更新用の関数（ゲーム結果に連動した内容に変更）
+// ウィジェット更新用の関数（スコア計算および評価ランク表示に変更）
 function updateDummyWidgets(isClear) {
     const weatherIcon = document.getElementById('widget-weather-icon');
     const weatherText = document.getElementById('widget-weather-text');
     const stockIcon = document.getElementById('widget-stock-icon');
     const stockText = document.getElementById('widget-stock-text');
 
-    if (isClear) {
-        if (weatherIcon) weatherIcon.className = 'fa-solid fa-medal text-amber-400 text-xl';
-        if (weatherText) {
-            weatherText.textContent = '社内エース';
-            weatherText.className = 'text-xs font-bold text-amber-300';
-        }
-        if (stockIcon) stockIcon.className = 'fa-solid fa-brain text-green-400 text-xl';
-        if (stockText) {
-            stockText.textContent = '鉄のメンタル';
-            stockText.className = 'text-xs font-bold text-green-400';
-        }
-    } else {
-        if (weatherIcon) weatherIcon.className = 'fa-solid fa-triangle-exclamation text-red-500 text-xl';
-        if (weatherText) {
-            weatherText.textContent = '戦力外通告';
-            weatherText.className = 'text-xs font-bold text-white';
-        }
-        if (stockIcon) stockIcon.className = 'fa-solid fa-heart-crack text-red-400 text-xl';
-        if (stockText) {
-            stockText.textContent = '限界寸前';
-            stockText.className = 'text-xs font-bold text-red-400';
-        }
+    // 経過秒数の計算（0秒除算を防ぐため最低1秒に設定）
+    const elapsedTimeMs = Date.now() - gameStartTime;
+    const elapsedSeconds = Math.max(1, Math.floor(elapsedTimeMs / 1000));
+
+    // スコア計算式: (処理した通知数 × 残充電 × 100) ÷ 経過秒数
+    let score = Math.floor((clearedNotificationsCount * currentBattery * 100) / elapsedSeconds);
+
+    // ゲームオーバー時はペナルティとしてスコアを半分にする
+    if (!isClear) {
+        score = Math.floor(score / 2);
+    }
+
+    // スコア表示の更新
+    if (weatherIcon) weatherIcon.className = 'fa-solid fa-star text-amber-400 text-xl';
+    if (weatherText) {
+        weatherText.textContent = `${score.toLocaleString()} pts`;
+        weatherText.className = 'text-xs font-bold text-amber-300';
+    }
+
+    // スコアランクの判定
+    let rank = 'C';
+    let rankColor = 'text-gray-300';
+    if (score >= 5000) {
+        rank = 'S';
+        rankColor = 'text-amber-300';
+    } else if (score >= 2500) {
+        rank = 'A';
+        rankColor = 'text-green-400';
+    } else if (score >= 1000) {
+        rank = 'B';
+        rankColor = 'text-blue-400';
+    }
+
+    if (stockIcon) stockIcon.className = 'fa-solid fa-trophy text-amber-400 text-xl';
+    if (stockText) {
+        stockText.textContent = `${rank} ランク`;
+        stockText.className = `text-xs font-bold ${rankColor}`;
     }
 }
 
@@ -738,10 +753,8 @@ async function fetchRanking(diff) {
             const clearedCount = item.clearedCount ?? item.cleared_count;
             const clearedStr = (clearedCount !== undefined && clearedCount !== null) ? `${clearedCount}件` : '-';
             
-            // 残充電を「始充電▶︎終充電」形式で表示
-            const batteryStr = (item.startBattery !== undefined && item.startBattery !== null && item.endBattery !== undefined) 
-                ? `${item.startBattery}▶︎${item.endBattery}` 
-                : (item.endBattery !== undefined ? `${item.endBattery}%` : '-');
+            // 残充電を「終充電%」形式で表示
+            const batteryStr = (item.endBattery !== undefined && item.endBattery !== null) ? `${item.endBattery}%` : '-';
 
             const row = document.createElement('div');
             row.className = 'grid grid-cols-12 items-center p-2 rounded bg-white/5 border border-white/5 text-xs';
