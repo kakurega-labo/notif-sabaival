@@ -24,10 +24,11 @@
                 <div class="flex items-center gap-2">
                     <span id="carrier-text" class="transition-all duration-300 font-bold">mobile</span>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 relative">
                     <i class="fa-solid fa-signal text-[10px]"></i>
                     <span id="battery-text">100%</span>
                     <i id="battery-icon" class="fa-solid fa-battery-full text-lg"></i>
+                    <span id="battery-bonus-pop" class="absolute -bottom-4 right-0 text-[10px] font-extrabold text-green-400 opacity-0 transition-all duration-300 pointer-events-none">+0%</span>
                 </div>
             </div>
 
@@ -75,7 +76,7 @@
                         
                         <p class="border-t border-white/20 pt-2"><strong>コンボと回復の仕組み：</strong><br>
                            通知を処理してから<strong>2.5秒以内</strong>に次の通知を処理するとコンボ発生！<br>
-                           コンボ数が増えるほど<strong>ボーナスでバッテリーが回復</strong>します。素早い連続処理が高得点のカギ！
+                           <strong>10コンボ達成ごと</strong>にボーナスでバッテリーが回復します。素早い連続処理が高得点のカギ！
                         </p>
 
                         <p class="border-t border-white/20 pt-2"><strong>クリア条件：</strong><br>設定した<strong>通知ノルマ</strong>以上の通知を処理し、画面上の通知を<strong>0件</strong>にすることです。</p>
