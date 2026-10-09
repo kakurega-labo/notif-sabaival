@@ -519,9 +519,9 @@ function handleAction(id, message, damage = 10, actionType = 'slave') {
     const card = document.getElementById(`notif-${id}`);
     if (!card) return;
 
-    // コンボ判定（3.5秒以内に次の通知を処理するとコンボ継続）
+    // コンボ判定（2.5秒以内に次の通知を処理するとコンボ継続）
     const now = Date.now();
-    if (lastClearedTime && (now - lastClearedTime < 3500)) {
+    if (lastClearedTime && (now - lastClearedTime < 2500)) {
         comboCount++;
     } else {
         comboCount = 1;
