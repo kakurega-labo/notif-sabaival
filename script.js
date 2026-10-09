@@ -792,6 +792,16 @@ function updateUserRankStatus(rankingData) {
     }
 }
 
+// ② 署名を生成する関数（追加）
+async function generateSignature(data) {
+    const secret = "notif_survival_secret";
+    const message = `${data.difficulty}-${data.username}-${data.clearTimeSeconds}-${data.clearedCount}-${secret}`;
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function submitRankingScore() {
     if (isScoreSubmitted) return; // 既に送信済みの場合は処理中断
 
@@ -818,6 +828,9 @@ async function submitRankingScore() {
             ...lastGameResult,
             username: name
         };
+
+        // ② 送信データに署名（ハッシュ値）を付与
+        payload.signature = await generateSignature(payload);
 
         const response = await fetch('/api/ranking', {
             method: 'POST',
