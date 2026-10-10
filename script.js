@@ -16,7 +16,7 @@ let lastClearedTime = 0; // 直近で通知を処理した時刻
 let comboTimerId = null; // コンボ表示（mobile位置）タイマー管理用
 
 // ランキング用状態
-let currentRankingDifficulty = "5"; // モーダルで表示中の難易度タグ
+let currentRankingDifficulty = "10"; // モーダルで表示中の難易度タグ
 let lastGameResult = null; // スコア送信用の最終リザルト情報
 let isScoreSubmitted = false; // 今回のスコアが送信済みかどうかのフラグ
 let toastTimeoutId = null; // トースト通知のタイマー管理用
@@ -31,9 +31,6 @@ function startGame() {
     
     // リザルト演出のリセット
     document.querySelector('.phone-frame').classList.remove('clear-bg');
-    
-    // 難易度（通知ノルマ）の選択状態を確実に反映
-    changeDifficulty();
     
     // ゲーム状態のリセット
     activeNotifications = [];
@@ -74,14 +71,49 @@ function toggleWallpaper() {
     }
 }
 
-function changeDifficulty() {
-    const select = document.getElementById('difficulty-select');
-    targetClearCount = parseInt(select.value, 10);
-    
-    const msg = document.getElementById('difficulty-msg');
-    if (msg) {
-        msg.classList.remove('hidden');
-        setTimeout(() => msg.classList.add('hidden'), 2000);
+// 難易度選択ポップアップ（タイトル画面用）
+function openDifficultyModal() {
+    document.getElementById('difficulty-modal').classList.remove('hidden');
+    updateDifficultyModalUI();
+}
+
+function closeDifficultyModal() {
+    document.getElementById('difficulty-modal').classList.add('hidden');
+}
+
+function selectDifficulty(diffStr) {
+    targetClearCount = parseInt(diffStr, 10);
+    updateDifficultyModalUI();
+}
+
+function updateDifficultyModalUI() {
+    ['5', '10', '20', '30'].forEach(d => {
+        const checkIcon = document.getElementById(`diff-check-${d}`);
+        const btn = document.getElementById(`diff-btn-${d}`);
+        if (checkIcon && btn) {
+            if (parseInt(d, 10) === targetClearCount) {
+                checkIcon.classList.remove('hidden');
+                btn.classList.add('border-purple-500', 'bg-white/20');
+            } else {
+                checkIcon.classList.add('hidden');
+                btn.classList.remove('border-purple-500', 'bg-white/20');
+            }
+        }
+    });
+}
+
+// 設定サブ画面の開閉制御
+function openSettingsSubScreen(subName) {
+    const subEl = document.getElementById(`settings-sub-${subName}`);
+    if (subEl) {
+        subEl.classList.remove('hidden');
+    }
+}
+
+function closeSettingsSubScreen(subName) {
+    const subEl = document.getElementById(`settings-sub-${subName}`);
+    if (subEl) {
+        subEl.classList.add('hidden');
     }
 }
 
@@ -90,6 +122,12 @@ function saveUsername() {
     const msg = document.getElementById('username-msg');
     savedUserName = input.value.trim().substring(0, 10); // 10文字までに制限
     input.value = savedUserName;
+
+    // 設定メイン画面のリアルタイム表示を更新
+    const settingsDisplay = document.getElementById('settings-username-display');
+    if (settingsDisplay) {
+        settingsDisplay.textContent = savedUserName ? savedUserName : "未設定";
+    }
 
     // リザルト側の入力欄にも即時同期
     const rankingInput = document.getElementById('ranking-username-input');
@@ -122,9 +160,10 @@ function formatElapsedTime(ms) {
 
 function getDifficultyText(count) {
     switch (count) {
-        case 5: return 'パート(5件)';
-        case 10: return 'ノーマル(10件)';
-        case 20: return 'フルタイム(20件)';
+        case 5: return 'パート (5件)';
+        case 10: return 'レギュラー (10件)';
+        case 20: return 'フルタイム (20件)';
+        case 30: return 'オーバータイム (30件)';
         default: return `カスタム(${count}件)`;
     }
 }
@@ -766,6 +805,16 @@ function prepareResultData(isClear = true) {
         rankingInput.value = savedUserName || "";
     }
 
+    // パート（5件）の場合はランキング登録エリアを非表示にする
+    const submitContainer = document.getElementById('ranking-submit-container');
+    if (submitContainer) {
+        if (targetClearCount === 5) {
+            submitContainer.classList.add('hidden');
+        } else {
+            submitContainer.classList.remove('hidden');
+        }
+    }
+
     resetResultSubmitState();
     updateResultSummaryCard();
 }
@@ -905,7 +954,8 @@ function openRankingModal(diff) {
     if (diff) {
         currentRankingDifficulty = diff;
     } else {
-        currentRankingDifficulty = targetClearCount.toString();
+        // パートの場合はデフォルトをレギュラー（10）にする
+        currentRankingDifficulty = (targetClearCount === 5) ? "10" : targetClearCount.toString();
     }
     
     document.getElementById('ranking-modal').classList.remove('hidden');
@@ -919,7 +969,7 @@ function closeRankingModal() {
 function switchRankingTab(diff) {
     currentRankingDifficulty = diff;
 
-    ['5', '10', '20'].forEach(d => {
+    ['10', '20', '30'].forEach(d => {
         const tab = document.getElementById(`tab-diff-${d}`);
         if (tab) {
             if (d === diff) {
@@ -1062,6 +1112,10 @@ async function submitRankingScore() {
         savedUserName = name;
         const mainInput = document.getElementById('username-input');
         if (mainInput) mainInput.value = name;
+
+        // 設定画面側の表示も更新
+        const settingsDisplay = document.getElementById('settings-username-display');
+        if (settingsDisplay) settingsDisplay.textContent = name;
 
         isScoreSubmitted = true;
         if (nameInput) {
