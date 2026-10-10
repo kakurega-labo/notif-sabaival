@@ -1,4 +1,4 @@
-// ③ レートリミット用のIP記録マップ
+// レートリミット用のIP記録マップ
 const ipRequests = new Map();
 
 export async function onRequestGet(context) {
@@ -26,7 +26,7 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
     const { request, env } = context;
 
-    // ③ レートリミット処理（IPアドレスごとの制限）
+    // レートリミット処理（IPアドレスごとの制限）
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
     const now = Date.now();
     
