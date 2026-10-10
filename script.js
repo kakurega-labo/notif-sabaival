@@ -831,8 +831,8 @@ function resetResultSubmitState() {
     const btn = document.getElementById('ranking-submit-btn');
     if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-arrow-up-from-bracket"></i> 登録';
-        btn.className = 'px-3.5 py-2 bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 active:scale-95 rounded-xl text-xs font-bold text-white shadow-md transition-all shrink-0 flex items-center justify-center gap-1 whitespace-nowrap border border-blue-400/50';
+        btn.textContent = '登録する';
+        btn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl text-xs font-bold text-white shadow transition-all shrink-0';
     }
     const msgEl = document.getElementById('ranking-submit-msg');
     if (msgEl) {
@@ -857,11 +857,8 @@ function updateResultSummaryCard() {
 }
 
 function updateDummyWidgets(isClear) {
-    const weatherIcon = document.getElementById('widget-weather-icon');
     const weatherText = document.getElementById('widget-weather-text');
-    const stockIcon = document.getElementById('widget-stock-icon');
     const stockText = document.getElementById('widget-stock-text');
-    const newBestTag = document.getElementById('new-best-tag');
 
     const elapsedTimeMs = Date.now() - gameStartTime;
     const elapsedSeconds = Math.max(1, Math.floor(elapsedTimeMs / 1000));
@@ -878,34 +875,23 @@ function updateDummyWidgets(isClear) {
     
     if (score > previousBest) {
         localStorage.setItem(storageKey, score.toString());
-        if (newBestTag) newBestTag.classList.remove('hidden');
-    } else {
-        if (newBestTag) newBestTag.classList.add('hidden');
     }
 
-    if (weatherIcon) weatherIcon.className = 'fa-solid fa-star text-amber-400 text-2xl shrink-0';
     if (weatherText) {
         weatherText.textContent = `${score.toLocaleString()} pts`;
-        weatherText.className = 'text-xl font-black text-amber-300 truncate tracking-tight';
     }
 
     let rank = 'C';
-    let rankColor = 'text-gray-300';
     if (score >= 5000) {
         rank = 'S';
-        rankColor = 'text-amber-300';
     } else if (score >= 2500) {
         rank = 'A';
-        rankColor = 'text-green-400';
     } else if (score >= 1000) {
         rank = 'B';
-        rankColor = 'text-blue-400';
     }
 
-    if (stockIcon) stockIcon.className = 'fa-solid fa-trophy text-amber-400 text-xl';
     if (stockText) {
         stockText.textContent = rank;
-        stockText.className = `text-base font-black ${rankColor}`;
     }
 }
 
@@ -913,22 +899,22 @@ function showGameOverScreen(reason = 'battery') {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
     hideToastImmediately();
 
+    // ゲーム終了時点の時刻を設定
+    const now = new Date();
+    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const emailTimeEl = document.getElementById('result-email-time');
+    if (emailTimeEl) emailTimeEl.textContent = timeStr;
+
     prepareResultData(false);
     updateDummyWidgets(false);
 
     const clearScreen = document.getElementById('clear-screen');
-    const icon = document.getElementById('end-icon');
     const title = document.getElementById('end-title');
-    const desc = document.getElementById('end-desc');
 
     if (reason === 'battery') {
-        icon.className = 'fa-solid fa-battery-empty text-4xl text-red-500 drop-shadow-md';
         title.textContent = '電源切れ';
-        desc.textContent = 'バッテリーが切れ、音信不通になりました...';
     } else if (reason === 'overflow') {
-        icon.className = 'fa-solid fa-dumpster-fire text-4xl text-yellow-500 drop-shadow-md';
         title.textContent = '処理落ち';
-        desc.textContent = '通知が溜まりすぎて熱暴走しました...';
     }
 
     clearScreen.classList.remove('hidden');
@@ -938,6 +924,12 @@ function showClearScreen() {
     if (spawnIntervalId) clearInterval(spawnIntervalId);
     hideToastImmediately();
 
+    // ゲーム終了時点の時刻を設定
+    const now = new Date();
+    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const emailTimeEl = document.getElementById('result-email-time');
+    if (emailTimeEl) emailTimeEl.textContent = timeStr;
+
     prepareResultData(true);
     updateDummyWidgets(true);
 
@@ -945,9 +937,7 @@ function showClearScreen() {
     document.getElementById('date-display').textContent = 'MISSION CLEAR';
 
     document.getElementById('clear-screen').classList.remove('hidden');
-    document.getElementById('end-icon').className = 'fa-solid fa-trophy text-4xl text-amber-400 drop-shadow-md';
-    document.getElementById('end-title').textContent = 'MISSION CLEAR!';
-    document.getElementById('end-desc').textContent = 'すべての業務通知を完璧に捌き切りました！';
+    document.getElementById('end-title').textContent = 'MISSION CLEAR';
 }
 
 function openRankingModal(diff) {
@@ -1125,7 +1115,7 @@ async function submitRankingScore() {
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-check"></i> 登録済';
-            btn.className = 'px-3 py-1.5 bg-gray-600/80 text-gray-300 cursor-not-allowed rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1 opacity-80 whitespace-nowrap border border-gray-500/30';
+            btn.className = 'px-4 py-2 bg-gray-600/80 text-gray-300 cursor-not-allowed rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1 opacity-80';
         }
 
         msgEl.textContent = '登録が完了しました！';
